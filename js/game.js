@@ -1,567 +1,1205 @@
 import {
-  colors,
-  hardColors,
-  difficultyConfig,
-  shuffle,
-  getColorValue
+    colors,
+    hardColors,
+    difficultyConfig,
+    shuffle,
+    getColorValue
 } from "./colors.js";
 
 import { playSound } from "./audio.js";
+
 import { saveStats } from "./storage.js";
+
 
 const GAME_TIME = 30;
 const MEMORY_TIME = 3;
 
+
 export class ColorGame {
-  constructor(ui, stats) {
-    this.ui = ui;
-    this.stats = stats;
 
-    this.resetState();
-  }
+    constructor(ui, stats) {
 
-  resetState() {
-    this.score = 0;
-    this.streak = 0;
-    this.attempts = 0;
-    this.lives = 0;
-    this.round = 0;
-    this.totalAnswers = 0;
-    this.correctAnswers = 0;
-    this.secret = null;
-    this.options = [];
-    this.timer = null;
-    this.memoryTimer = null;
-    this.memoryActive = false;
-    this.gameActive = false;
-  }
+        this.ui = ui;
+        this.stats = stats;
 
-  start() {
-    this.stopTimer();
-    this.stopMemoryTimer();
-    this.resetState();
+        this.gameActive = false;
 
-    this.gameActive = true;
-    this.stats.totalGames++;
+        this.score = 0;
+        this.streak = 0;
 
-    this.updateUI();
-    this.ui.hideModal();
+        this.attempts = 0;
+        this.lives = 0;
 
-    if (this.getMode() === "time") {
-      this.lives = 3;
-      this.startTimeAttack();
+        this.round = 0;
+
+        this.totalAnswers = 0;
+        this.correctAnswers = 0;
+
+        this.secret = null;
+        this.options = [];
+
+        this.timer = null;
+        this.memoryTimer = null;
+        this.nextRoundTimer = null;
+
+        this.memoryActive = false;
+
+        this.resetState();
     }
 
-    this.startRound();
-    this.save();
-  }
 
-  startRound() {
-    if (!this.gameActive) return;
+    /* =========================
+       CONTROLE DO ESTADO
+    ========================= */
 
-    this.stopMemoryTimer();
+    resetState() {
 
-    document.body.classList.remove("memory-mode");
+        this.score = 0;
+        this.streak = 0;
 
-    this.attempts = 0;
-    this.memoryActive = false;
-    this.ui.clearFeedback();
-    this.ui.clearHint();
+        this.attempts = 0;
+        this.lives = 0;
 
-    if (this.getMode() === "memory") {
-      this.startMemoryRound();
-      return;
+        this.round = 0;
+
+        this.totalAnswers = 0;
+        this.correctAnswers = 0;
+
+        this.secret = null;
+        this.options = [];
+
+        this.memoryActive = false;
     }
 
-    this.prepareOptions();
-    this.renderQuestion();
 
-    if (this.getMode() === "classic") {
-      this.lives = this.getMaxAttempts();
-      this.ui.setStatusType("attempts");
-      this.ui.hideTimer();
-    } else {
-      this.ui.setStatusType("lives");
+    stopTimers() {
+
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+
+        if (this.memoryTimer) {
+            clearInterval(this.memoryTimer);
+            this.memoryTimer = null;
+        }
     }
 
-    this.updateUI();
-  }
 
-  getDifficulty() {
-    return this.ui.getDifficulty();
-  }
+    stopNextRoundTimer() {
 
-  getMode() {
-    return this.ui.getGameMode();
-  }
-
-  getFormat() {
-    return this.ui.getColorFormat();
-  }
-
-  getConfig() {
-    return difficultyConfig[this.getDifficulty()];
-  }
-
-  getMaxAttempts() {
-    return this.getConfig().attempts;
-  }
-
-  prepareOptions() {
-    const source =
-      this.getDifficulty() === "hard"
-        ? hardColors
-        : colors;
-
-    this.options = shuffle(source).slice(
-      0,
-      this.getConfig().options
-    );
-
-    this.secret =
-      this.options[Math.floor(Math.random() * this.options.length)];
-  }
-
-  renderQuestion() {
-    const format = this.getFormat();
-
-    this.ui.showColorCode(
-      getColorValue(this.secret, format)
-    );
-
-    this.ui.renderOptions(
-      this.options,
-      false
-    );
-  }
-
-  guess(color, button) {
-    if (!this.gameActive || this.memoryActive) return;
-
-    if (button?.disabled) return;
-
-    this.totalAnswers++;
-    this.stats.totalAnswers++;
-
-    if (color.hex === this.secret.hex) {
-      this.handleCorrect(button);
-    } else {
-      this.handleWrong(button);
+        if (this.nextRoundTimer) {
+            clearTimeout(this.nextRoundTimer);
+            this.nextRoundTimer = null;
+        }
     }
 
-    this.save();
-  }
 
-  handleCorrect(button) {
-    this.correctAnswers++;
-    this.stats.correctAnswers++;
+    /* =========================
+       INICIAR JOGO
+    ========================= */
 
-    this.streak++;
-    this.stats.bestStreak = Math.max(
-      this.stats.bestStreak,
-      this.streak
-    );
+    start() {
 
-    const multiplier = Math.min(this.streak, 5);
-    const points = 10 * multiplier;
+        this.stopTimers();
+        this.stopNextRoundTimer();
 
-    this.score += points;
+        this.gameActive = false;
 
-    this.stats.highScore = Math.max(
-      this.stats.highScore,
-      this.score
-    );
+        this.resetState();
 
-    this.ui.showFeedback(
-      `Correto! +${points} pontos`,
-      "success"
-    );
+        this.gameActive = true;
 
-    this.ui.clearHint();
-    this.ui.disableOptions();
+        this.stats.totalGames++;
 
-    playSound(
-      "success",
-      this.stats.soundEnabled
-    );
+        this.ui.hideModal();
+        this.ui.hideTimer();
+        this.ui.hideMemoryTimer();
 
-    this.celebrate();
-    this.updateUI();
+        document.body.classList.remove("memory-mode");
 
-    setTimeout(() => {
-      if (this.gameActive) {
-        this.round++;
+        this.updateUI();
+
+        const mode = this.getMode();
+
+        if (mode === "time") {
+            this.lives = 3;
+            this.startTimeAttack();
+        }
+
         this.startRound();
-      }
-    }, 900);
-  }
 
-  handleWrong(button) {
-    this.streak = 0;
+        this.save();
+    }
 
-    if (this.getMode() === "classic") {
-      this.attempts++;
 
-      this.ui.showFeedback(
-        "Resposta incorreta!",
-        "error"
-      );
+    /* =========================
+       INICIAR RODADA
+    ========================= */
 
-      this.showClassicHint();
+    startRound() {
 
-      if (this.attempts >= this.getMaxAttempts()) {
-        setTimeout(
-          () => this.endGame(
-            `Você esgotou as ${this.getMaxAttempts()} tentativas.`
-          ),
-          700
+        this.stopMemoryTimer();
+
+        this.stopNextRoundTimer();
+
+        this.memoryActive = false;
+
+        this.attempts = 0;
+
+        this.ui.clearFeedback();
+        this.ui.clearHint();
+
+        this.ui.hideMemoryTimer();
+
+        document.body.classList.remove("memory-mode");
+
+        const mode = this.getMode();
+
+        if (mode === "memory") {
+
+            this.ui.hideTimer();
+
+            this.startMemoryRound();
+
+            return;
+        }
+
+        this.prepareOptions();
+
+        this.renderQuestion();
+
+        if (mode === "classic") {
+
+            this.lives = this.getMaxAttempts();
+
+            this.ui.setStatusType("attempts");
+            this.ui.hideTimer();
+
+            this.ui.setQuestionLabel(
+                "Qual é a cor correta?"
+            );
+
+        } else {
+
+            this.ui.setStatusType("lives");
+
+            this.ui.setQuestionLabel(
+                "Qual é esta cor?"
+            );
+        }
+
+        this.updateUI();
+    }
+
+
+    /* =========================
+       CONFIGURAÇÕES
+    ========================= */
+
+    getDifficulty() {
+        return this.ui.getDifficulty();
+    }
+
+
+    getMode() {
+        return this.ui.getGameMode();
+    }
+
+
+    getFormat() {
+        return this.ui.getColorFormat();
+    }
+
+
+    getConfig() {
+
+        return (
+            difficultyConfig[this.getDifficulty()] ||
+            difficultyConfig.medium
         );
-      }
-    } else {
-      this.lives--;
+    }
 
-      this.ui.showFeedback(
-        "Resposta incorreta!",
-        "error"
-      );
 
-      if (button) {
+    getMaxAttempts() {
+        return this.getConfig().attempts;
+    }
+
+
+    /* =========================
+       PREPARAR CORES
+    ========================= */
+
+    prepareOptions() {
+
+        const difficulty = this.getDifficulty();
+
+        const source =
+            difficulty === "hard"
+                ? hardColors
+                : colors;
+
+        const amount = this.getConfig().options;
+
+        this.options = shuffle([...source]).slice(
+            0,
+            Math.min(amount, source.length)
+        );
+
+        this.secret =
+            this.options[
+                Math.floor(
+                    Math.random() * this.options.length
+                )
+            ];
+    }
+
+
+    /* =========================
+       MOSTRAR PERGUNTA
+    ========================= */
+
+    renderQuestion() {
+
+        if (!this.secret) {
+            return;
+        }
+
+        const format = this.getFormat();
+
+        const value = getColorValue(
+            this.secret,
+            format
+        );
+
+        this.ui.showColorCode(value);
+
+        this.ui.renderOptions(
+            this.options,
+            this,
+            false
+        );
+
+        this.ui.elements.colorDisplay.style.backgroundColor =
+            this.secret.hex;
+    }
+
+
+    /* =========================
+       RESPOSTA NORMAL
+    ========================= */
+
+    guess(color, button) {
+
+        if (!this.gameActive) {
+            return;
+        }
+
+        if (this.memoryActive) {
+            return;
+        }
+
+        if (!button || button.disabled) {
+            return;
+        }
+
+        this.totalAnswers++;
+        this.stats.totalAnswers++;
+
+
+        const correct =
+            color.name === this.secret.name;
+
+
+        if (correct) {
+
+            this.handleCorrect();
+
+        } else {
+
+            this.handleWrong(button);
+        }
+
+
+        this.save();
+    }
+
+
+    /* =========================
+       RESPOSTA CORRETA
+    ========================= */
+
+    handleCorrect() {
+
+        this.correctAnswers++;
+        this.stats.correctAnswers++;
+
+        this.streak++;
+
+        this.stats.bestStreak = Math.max(
+            this.stats.bestStreak,
+            this.streak
+        );
+
+
+        const mode = this.getMode();
+
+        let points;
+
+
+        if (mode === "memory") {
+
+            points =
+                20 +
+                Math.min(
+                    this.streak * 5,
+                    50
+                );
+
+        } else {
+
+            points =
+                10 *
+                Math.min(
+                    this.streak,
+                    5
+                );
+        }
+
+
+        this.score += points;
+
+
+        this.stats.highScore = Math.max(
+            this.stats.highScore,
+            this.score
+        );
+
+
+        this.ui.showFeedback(
+            `Correta! +${points} pontos`,
+            "success"
+        );
+
+
+        this.ui.clearHint();
+        this.ui.disableOptions();
+
+
+        playSound(
+            "success",
+            this.stats.soundEnabled !== false
+        );
+
+
+        this.celebrate();
+
+        this.updateUI();
+
+
+        this.nextRoundTimer = setTimeout(() => {
+
+            this.nextRoundTimer = null;
+
+            if (!this.gameActive) {
+                return;
+            }
+
+            this.round++;
+
+            this.startRound();
+
+        }, 900);
+    }
+
+
+    /* =========================
+       RESPOSTA ERRADA
+    ========================= */
+
+    handleWrong(button) {
+
+        this.streak = 0;
+
+        const mode = this.getMode();
+
+
+        if (mode === "classic") {
+
+            this.attempts++;
+
+            const remaining =
+                this.getMaxAttempts() -
+                this.attempts;
+
+
+            this.ui.showFeedback(
+                `Errada! Você ainda tem ${remaining} tentativa(s).`,
+                "error"
+            );
+
+
+            this.showClassicHint();
+
+
+            if (remaining <= 0) {
+
+                this.ui.showFeedback(
+                    `Fim das tentativas! A cor era ${this.secret.name}.`,
+                    "error"
+                );
+
+
+                this.disableWrongButton(button);
+
+
+                setTimeout(() => {
+
+                    if (this.gameActive) {
+                        this.endGame();
+                    }
+
+                }, 700);
+
+
+                return;
+            }
+
+
+        } else {
+
+            this.lives--;
+
+
+            this.ui.showFeedback(
+                `Errada! Você perdeu uma vida.`,
+                "error"
+            );
+
+
+            this.disableWrongButton(button);
+
+
+            if (this.lives <= 0) {
+
+                this.ui.showFeedback(
+                    `Fim de jogo! A cor era ${this.secret.name}.`,
+                    "error"
+                );
+
+
+                setTimeout(() => {
+
+                    if (this.gameActive) {
+                        this.endGame();
+                    }
+
+                }, 700);
+
+
+                return;
+            }
+        }
+
+
+        playSound(
+            "error",
+            this.stats.soundEnabled !== false
+        );
+
+
+        this.updateUI();
+    }
+
+
+    /* =========================
+       DESABILITAR RESPOSTA ERRADA
+    ========================= */
+
+    disableWrongButton(button) {
+
+        if (!button) {
+            return;
+        }
+
         button.classList.add("wrong");
+        button.disabled = true;
 
         setTimeout(() => {
-          button.classList.remove("wrong");
+
+            button.classList.remove("wrong");
+
         }, 500);
-      }
+    }
 
-      if (this.lives <= 0) {
-        setTimeout(
-          () => this.endGame("Você ficou sem vidas!"),
-          700
+
+    /* =========================
+       SISTEMA DE DICAS
+    ========================= */
+
+    showClassicHint() {
+
+        if (!this.secret) {
+            return;
+        }
+
+
+        const remaining =
+            this.getMaxAttempts() -
+            this.attempts;
+
+
+        const {
+            rgb,
+            hex,
+            name
+        } = this.secret;
+
+
+        let message;
+
+
+        if (remaining >= 4) {
+
+            message =
+                `Dica: a cor começa com "${name.charAt(0)}".`;
+
+        } else if (remaining === 3) {
+
+            message =
+                `Dica: RGB = ${rgb}`;
+
+        } else if (remaining === 2) {
+
+            message =
+                `Dica: HEX começa com ${hex.substring(0, 4)}...`;
+
+        } else {
+
+            message =
+                `Dica final: RGB = ${rgb}`;
+        }
+
+
+        this.ui.showHint(message);
+    }
+
+
+    showHint() {
+
+        if (!this.gameActive) {
+            return;
+        }
+
+
+        const mode = this.getMode();
+
+
+        if (mode === "memory") {
+
+            this.ui.showHint(
+                "A dica não está disponível no modo Memória."
+            );
+
+            return;
+        }
+
+
+        if (!this.secret) {
+            return;
+        }
+
+
+        if (mode === "classic") {
+
+            this.showClassicHint();
+
+            return;
+        }
+
+
+        const {
+            rgb,
+            hex
+        } = this.secret;
+
+
+        this.ui.showHint(
+            `Dica: RGB ${rgb} • HEX ${hex}`
         );
-      }
     }
 
-    playSound(
-      "error",
-      this.stats.soundEnabled
-    );
 
-    this.updateUI();
-  }
+    /* =========================
+       TIME ATTACK
+    ========================= */
 
-  showClassicHint() {
-    const remaining =
-      this.getMaxAttempts() - this.attempts;
+    startTimeAttack() {
 
-    const { rgb, hex, name } = this.secret;
+        this.stopTimeTimer();
 
-    let hint;
+        let timeLeft = GAME_TIME;
 
-    if (remaining >= 4) {
-      hint = `A cor secreta começa com a letra "${name[0]}".`;
-    } else if (remaining === 3) {
-      const [r, g, b] = rgb
-        .match(/\d+/g)
-        .map(Number);
+        this.ui.showTimer(timeLeft);
 
-      const largest = Math.max(r, g, b);
 
-      if (largest === r) {
-        hint = "A cor possui predominância de vermelho.";
-      } else if (largest === g) {
-        hint = "A cor possui predominância de verde.";
-      } else {
-        hint = "A cor possui predominância de azul.";
-      }
-    } else if (remaining === 2) {
-      hint = `O código HEX começa com "${hex.slice(0, 4)}".`;
-    } else {
-      hint = `Última dica: ${rgb}.`;
+        this.timer = setInterval(() => {
+
+            if (!this.gameActive) {
+                this.stopTimeTimer();
+                return;
+            }
+
+
+            timeLeft--;
+
+            this.ui.showTimer(timeLeft);
+
+
+            if (timeLeft <= 0) {
+
+                this.stopTimeTimer();
+
+                this.ui.showFeedback(
+                    "Tempo esgotado!",
+                    "error"
+                );
+
+
+                setTimeout(() => {
+
+                    if (this.gameActive) {
+                        this.endGame();
+                    }
+
+                }, 500);
+            }
+
+        }, 1000);
     }
 
-    this.ui.showHint(hint);
-  }
 
-  startTimeAttack() {
-    this.stopTimer();
+    stopTimeTimer() {
 
-    let remaining = GAME_TIME;
+        if (this.timer) {
 
-    this.ui.showTimer(remaining);
+            clearInterval(this.timer);
 
-    this.timer = setInterval(() => {
-      remaining--;
-
-      this.ui.showTimer(remaining);
-
-      if (remaining <= 0) {
-        this.endGame("O tempo acabou!");
-      }
-    }, 1000);
-  }
-
-  startMemoryRound() {
-    document.body.classList.add("memory-mode");
-
-    const source =
-      this.getDifficulty() === "hard"
-        ? hardColors
-        : colors;
-
-    this.options = shuffle(source).slice(
-      0,
-      this.getConfig().memoryOptions
-    );
-
-    this.secret =
-      this.options[
-        Math.floor(
-          Math.random() * this.options.length
-        )
-      ];
-
-    this.memoryActive = true;
-    this.lives = 3;
-
-    this.ui.setStatusType("lives");
-    this.ui.showColorCode("");
-    this.ui.clearHint();
-    this.ui.clearFeedback();
-
-    this.ui.startMemoryDisplay(
-      this.secret.hex,
-      MEMORY_TIME
-    );
-
-    let remaining = MEMORY_TIME;
-
-    this.ui.showMemoryTimer(remaining);
-
-    this.memoryTimer = setInterval(() => {
-      remaining--;
-
-      this.ui.showMemoryTimer(remaining);
-
-      if (remaining <= 0) {
-        this.finishMemoryDisplay();
-      }
-    }, 1000);
-
-    this.updateUI();
-  }
-
-  finishMemoryDisplay() {
-    this.stopMemoryTimer();
-
-    this.memoryActive = true;
-
-    this.ui.hideMemoryColor();
-
-    this.ui.renderOptions(
-      this.options,
-      true
-    );
-
-    this.ui.showFeedback(
-      "Agora encontre a cor que você memorizou!",
-      "info"
-    );
-  }
-
-  guessMemory(color, button) {
-    if (!this.gameActive || !this.memoryActive) return;
-
-    if (button?.disabled) return;
-
-    this.totalAnswers++;
-    this.stats.totalAnswers++;
-
-    if (color.hex === this.secret.hex) {
-      this.correctAnswers++;
-      this.stats.correctAnswers++;
-
-      this.streak++;
-
-      this.stats.bestStreak = Math.max(
-        this.stats.bestStreak,
-        this.streak
-      );
-
-      const points =
-        20 + Math.min(this.streak * 5, 50);
-
-      this.score += points;
-
-      this.stats.highScore = Math.max(
-        this.stats.highScore,
-        this.score
-      );
-
-      this.ui.showFeedback(
-        `Memória correta! +${points} pontos`,
-        "success"
-      );
-
-      this.ui.disableOptions();
-
-      playSound(
-        "success",
-        this.stats.soundEnabled
-      );
-
-      this.celebrate();
-
-      this.memoryActive = false;
-
-      document.body.classList.remove(
-        "memory-mode"
-      );
-
-      this.updateUI();
-      this.save();
-
-      setTimeout(() => {
-        if (this.gameActive) {
-          this.round++;
-          this.startRound();
+            this.timer = null;
         }
-      }, 900);
-
-      return;
     }
 
-    this.streak = 0;
-    this.lives--;
 
-    this.ui.showFeedback(
-      "Essa não era a cor!",
-      "error"
-    );
+    /* =========================
+       MODO MEMÓRIA
+    ========================= */
 
-    button.classList.add("wrong");
+    startMemoryRound() {
 
-    setTimeout(() => {
-      button.classList.remove("wrong");
-    }, 500);
+        this.stopMemoryTimer();
 
-    playSound(
-      "error",
-      this.stats.soundEnabled
-    );
+        const difficulty =
+            this.getDifficulty();
 
-    if (this.lives <= 0) {
-      this.endGame(
-        "Você ficou sem vidas!"
-      );
 
-      return;
-    }
+        const source =
+            difficulty === "hard"
+                ? hardColors
+                : colors;
 
-    this.updateUI();
-    this.save();
-  }
 
-  updateUI() {
-    const accuracy =
-      this.totalAnswers > 0
-        ? Math.round(
-            (this.correctAnswers /
-              this.totalAnswers) *
-              100
-          )
-        : 0;
+        const amount =
+            this.getConfig().memoryOptions;
 
-    this.ui.updateStatus({
-      score: this.score,
-      streak: this.streak,
-      lives:
-        this.getMode() === "classic"
-          ? Math.max(
-              this.getMaxAttempts() -
-                this.attempts,
-              0
+
+        this.options = shuffle([
+            ...source
+        ]).slice(
+            0,
+            Math.min(
+                amount,
+                source.length
             )
-          : this.lives,
-      round: this.round + 1,
-      attempts:
-        this.getMaxAttempts() -
-        this.attempts
-    });
+        );
 
-    this.ui.updateStats(
-      this.stats,
-      this.getPersistentAccuracy()
-    );
 
-    this.ui.updateAccuracy(accuracy);
-  }
+        this.secret =
+            this.options[
+                Math.floor(
+                    Math.random() *
+                    this.options.length
+                )
+            ];
 
-  getPersistentAccuracy() {
-    if (!this.stats.totalAnswers) {
-      return 0;
+
+        this.memoryActive = true;
+
+        this.lives = 3;
+
+
+        this.ui.setStatusType("lives");
+
+        this.ui.setQuestionLabel(
+            "Memorize a cor!"
+        );
+
+
+        this.ui.clearFeedback();
+        this.ui.clearHint();
+
+
+        this.ui.renderOptions(
+            [],
+            this,
+            true
+        );
+
+
+        this.ui.startMemoryDisplay(
+            this.secret.hex,
+            MEMORY_TIME
+        );
+
+
+        let timeLeft = MEMORY_TIME;
+
+
+        this.memoryTimer =
+            setInterval(() => {
+
+                if (!this.gameActive) {
+
+                    this.stopMemoryTimer();
+
+                    return;
+                }
+
+
+                timeLeft--;
+
+                this.ui.showMemoryTimer(
+                    timeLeft
+                );
+
+
+                if (timeLeft <= 0) {
+
+                    this.finishMemoryDisplay();
+                }
+
+            }, 1000);
+
+
+        this.updateUI();
     }
 
-    return Math.round(
-      (this.stats.correctAnswers /
-        this.stats.totalAnswers) *
-        100
-    );
-  }
 
-  endGame(message) {
-    if (!this.gameActive) return;
+    finishMemoryDisplay() {
 
-    this.gameActive = false;
+        this.stopMemoryTimer();
 
-    this.stopTimer();
-    this.stopMemoryTimer();
-
-    document.body.classList.remove(
-      "memory-mode"
-    );
-
-    this.stats.highScore = Math.max(
-      this.stats.highScore,
-      this.score
-    );
-
-    this.ui.showGameOver({
-      score: this.score,
-      streak: this.streak,
-      accuracy: this.getPersistentAccuracy(),
-      message
-    });
-
-    this.save();
-  }
-
-  stopTimer() {
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = null;
-    }
-  }
-
-  stopMemoryTimer() {
-    if (this.memoryTimer) {
-      clearInterval(this.memoryTimer);
-      this.memoryTimer = null;
-    }
-  }
-
-  celebrate() {
-    if (typeof confetti === "function") {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: {
-          y: 0.6
+        if (!this.gameActive) {
+            return;
         }
-      });
-    }
-  }
 
-  save() {
-    saveStats(this.stats);
-  }
+
+        this.ui.hideMemoryColor();
+
+
+        this.ui.setQuestionLabel(
+            "Qual era a cor?"
+        );
+
+
+        this.ui.showFeedback(
+            "Escolha a cor que você acabou de memorizar.",
+            "info"
+        );
+
+
+        this.ui.renderOptions(
+            this.options,
+            this,
+            true
+        );
+
+
+        this.updateUI();
+    }
+
+
+    stopMemoryTimer() {
+
+        if (this.memoryTimer) {
+
+            clearInterval(
+                this.memoryTimer
+            );
+
+            this.memoryTimer = null;
+        }
+    }
+
+
+    /* =========================
+       RESPOSTA DO MODO MEMÓRIA
+    ========================= */
+
+    guessMemory(color, button) {
+
+        if (!this.gameActive) {
+            return;
+        }
+
+        if (!this.memoryActive) {
+            return;
+        }
+
+        if (!button || button.disabled) {
+            return;
+        }
+
+
+        this.totalAnswers++;
+        this.stats.totalAnswers++;
+
+
+        const correct =
+            color.name === this.secret.name;
+
+
+        if (correct) {
+
+            this.correctAnswers++;
+            this.stats.correctAnswers++;
+
+            this.streak++;
+
+
+            this.stats.bestStreak =
+                Math.max(
+                    this.stats.bestStreak,
+                    this.streak
+                );
+
+
+            const points =
+                20 +
+                Math.min(
+                    this.streak * 5,
+                    50
+                );
+
+
+            this.score += points;
+
+
+            this.stats.highScore =
+                Math.max(
+                    this.stats.highScore,
+                    this.score
+                );
+
+
+            this.ui.showFeedback(
+                `Memória perfeita! +${points} pontos`,
+                "success"
+            );
+
+
+            this.ui.disableOptions();
+
+
+            playSound(
+                "success",
+                this.stats.soundEnabled !== false
+            );
+
+
+            this.celebrate();
+
+
+            this.memoryActive = false;
+
+            document.body.classList.remove(
+                "memory-mode"
+            );
+
+
+            this.updateUI();
+
+
+            this.nextRoundTimer =
+                setTimeout(() => {
+
+                    this.nextRoundTimer = null;
+
+                    if (!this.gameActive) {
+                        return;
+                    }
+
+                    this.round++;
+
+                    this.startRound();
+
+                }, 900);
+
+
+        } else {
+
+            this.streak = 0;
+
+            this.lives--;
+
+
+            this.disableWrongButton(
+                button
+            );
+
+
+            this.ui.showFeedback(
+                `Errada! Você ainda tem ${this.lives} vida(s).`,
+                "error"
+            );
+
+
+            playSound(
+                "error",
+                this.stats.soundEnabled !== false
+            );
+
+
+            if (this.lives <= 0) {
+
+                this.memoryActive = false;
+
+
+                setTimeout(() => {
+
+                    if (this.gameActive) {
+                        this.endGame();
+                    }
+
+                }, 700);
+
+
+                return;
+            }
+
+
+            this.updateUI();
+        }
+
+
+        this.save();
+    }
+
+
+    /* =========================
+       ATUALIZAR INTERFACE
+    ========================= */
+
+    updateUI() {
+
+        const mode = this.getMode();
+
+
+        let visibleLives;
+
+
+        if (mode === "classic") {
+
+            visibleLives =
+                Math.max(
+                    this.getMaxAttempts() -
+                    this.attempts,
+                    0
+                );
+
+        } else {
+
+            visibleLives =
+                Math.max(
+                    this.lives,
+                    0
+                );
+        }
+
+
+        const sessionAccuracy =
+            this.getCurrentAccuracy();
+
+
+        this.ui.updateStatus({
+
+            score: this.score,
+
+            streak: this.streak,
+
+            lives: visibleLives,
+
+            round: this.round + 1,
+
+            attempts:
+                mode === "classic"
+                    ? this.attempts
+                    : "—"
+        });
+
+
+        this.ui.updateStats(
+            this.stats,
+            this.getPersistentAccuracy()
+        );
+
+
+        this.ui.updateAccuracy(
+            sessionAccuracy
+        );
+    }
+
+
+    /* =========================
+       ESTATÍSTICAS
+    ========================= */
+
+    getCurrentAccuracy() {
+
+        if (this.totalAnswers === 0) {
+            return 0;
+        }
+
+
+        return Math.round(
+            (
+                this.correctAnswers /
+                this.totalAnswers
+            ) * 100
+        );
+    }
+
+
+    getPersistentAccuracy() {
+
+        if (
+            !this.stats.totalAnswers ||
+            this.stats.totalAnswers <= 0
+        ) {
+            return 0;
+        }
+
+
+        return Math.round(
+            (
+                this.stats.correctAnswers /
+                this.stats.totalAnswers
+            ) * 100
+        );
+    }
+
+
+    /* =========================
+       FIM DE JOGO
+    ========================= */
+
+    endGame() {
+
+        if (!this.gameActive) {
+            return;
+        }
+
+
+        this.gameActive = false;
+
+        this.memoryActive = false;
+
+
+        this.stopTimers();
+        this.stopNextRoundTimer();
+
+
+        document.body.classList.remove(
+            "memory-mode"
+        );
+
+
+        this.ui.hideTimer();
+        this.ui.hideMemoryTimer();
+
+
+        const accuracy =
+            this.getCurrentAccuracy();
+
+
+        let message;
+
+
+        if (accuracy >= 80) {
+
+            message =
+                "Excelente! Você teve um ótimo desempenho.";
+
+        } else if (accuracy >= 50) {
+
+            message =
+                "Bom trabalho! Continue praticando.";
+
+        } else {
+
+            message =
+                "Continue tentando. A prática melhora sua pontuação!";
+        }
+
+
+        this.ui.showGameOver({
+
+            score: this.score,
+
+            streak: this.streak,
+
+            accuracy,
+
+            message
+        });
+
+
+        this.save();
+    }
+
+
+    /* =========================
+       CONFETES
+    ========================= */
+
+    celebrate() {
+
+        if (
+            typeof window.confetti !==
+            "function"
+        ) {
+            return;
+        }
+
+
+        window.confetti({
+
+            particleCount: 80,
+
+            spread: 70,
+
+            origin: {
+                y: 0.6
+            }
+        });
+    }
+
+
+    /* =========================
+       SALVAR
+    ========================= */
+
+    save() {
+
+        saveStats(this.stats);
+    }
 }

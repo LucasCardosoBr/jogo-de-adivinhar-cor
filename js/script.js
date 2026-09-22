@@ -1,481 +1,461 @@
 import { ColorGame } from "./game.js";
 import {
-  loadStats,
-  saveStats,
-  resetStats,
-  loadTheme
+    loadStats,
+    saveStats,
+    resetStats,
+    loadTheme,
+    saveTheme
 } from "./storage.js";
 
-const $ = selector => document.querySelector(selector);
+const $ = (selector) => document.querySelector(selector);
 
 const elements = {
-  difficulty: $("#difficulty"),
-  gameMode: $("#gameMode"),
-  colorFormat: $("#colorFormat"),
+    difficulty: $("#difficulty"),
+    gameMode: $("#gameMode"),
+    colorFormat: $("#colorFormat"),
 
-  score: $("#score"),
-  streak: $("#streak"),
-  lives: $("#lives"),
-  round: $("#round"),
-  attempts: $("#attempts"),
-  timer: $("#timer"),
+    score: $("#score"),
+    streak: $("#streak"),
+    lives: $("#lives"),
+    livesLabel: $("#livesLabel"),
+    round: $("#round"),
+    attempts: $("#attempts"),
+    timer: $("#timer"),
 
-  colorDisplay: $("#colorDisplay"),
-  colorCode: $("#colorCode"),
-  questionLabel: $("#questionLabel"),
-  hint: $("#hint"),
-  colorOptions: $("#colorOptions"),
-  feedback: $("#feedback"),
+    colorDisplay: $("#colorDisplay"),
+    colorCode: $("#colorCode"),
+    questionLabel: $("#questionLabel"),
+    hint: $("#hint"),
+    colorOptions: $("#colorOptions"),
+    feedback: $("#feedback"),
 
-  hintButton: $("#hintButton"),
-  restartButton: $("#restartButton"),
+    hintButton: $("#hintButton"),
+    restartButton: $("#restartButton"),
 
-  highScore: $("#highScore"),
-  bestStreak: $("#bestStreak"),
-  totalGames: $("#totalGames"),
-  accuracy: $("#accuracy"),
+    highScore: $("#highScore"),
+    bestStreak: $("#bestStreak"),
+    totalGames: $("#totalGames"),
+    accuracy: $("#accuracy"),
 
-  resetStats: $("#resetStats"),
+    resetStats: $("#resetStatsButton"),
 
-  themeButton: $("#themeButton"),
-  soundButton: $("#soundButton"),
+    themeButton: $("#themeButton"),
+    soundButton: $("#soundButton"),
 
-  gameOverModal: $("#gameOverModal"),
-  finalScore: $("#finalScore"),
-  finalStreak: $("#finalStreak"),
-  finalAccuracy: $("#finalAccuracy"),
-  gameOverMessage: $("#gameOverMessage"),
-  closeModal: $("#closeModal"),
+    gameOverModal: $("#gameOverModal"),
+    finalScore: $("#finalScore"),
+    finalStreak: $("#finalStreak"),
+    finalAccuracy: $("#finalAccuracy"),
+    gameOverMessage: $("#gameOverMessage"),
 
-  memoryTimer: $("#memoryTimer")
+    closeModal: $("#closeModal"),
+    playAgainButton: $("#playAgainButton"),
+
+    memoryTimer: $("#memoryTimer")
 };
+
+class GameUI {
+
+    constructor(elements) {
+        this.elements = elements;
+    }
+
+    getDifficulty() {
+        return this.elements.difficulty.value;
+    }
+
+    getGameMode() {
+        return this.elements.gameMode.value;
+    }
+
+    getColorFormat() {
+        return this.elements.colorFormat.value;
+    }
+
+    setStatusType(type) {
+        const label = this.elements.livesLabel;
+
+        if (!label) {
+            return;
+        }
+
+        if (type === "attempts") {
+            label.textContent = "🎯 Tentativas";
+        } else {
+            label.textContent = "❤️ Vidas";
+        }
+    }
+
+    updateStatus({
+        score,
+        streak,
+        lives,
+        round,
+        attempts
+    }) {
+        this.elements.score.textContent = score;
+        this.elements.streak.textContent = streak;
+        this.elements.lives.textContent = lives;
+        this.elements.round.textContent = `Rodada ${round}`;
+        this.elements.attempts.textContent = `Tentativas: ${attempts}`;
+    }
+
+    updateStats(stats, accuracy) {
+        this.elements.highScore.textContent = stats.highScore;
+        this.elements.bestStreak.textContent = stats.bestStreak;
+        this.elements.totalGames.textContent = stats.totalGames;
+        this.elements.accuracy.textContent = `${accuracy}%`;
+    }
+
+    updateAccuracy(accuracy) {
+        this.elements.accuracy.textContent = `${accuracy}%`;
+    }
+
+    showColorCode(value) {
+        this.elements.colorCode.textContent = value;
+    }
+
+    renderOptions(options, game, memory = false) {
+        const container = this.elements.colorOptions;
+
+        container.innerHTML = "";
+
+        options.forEach((color) => {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = memory
+                ? "color-option memory-option"
+                : "color-option";
+
+            button.style.backgroundColor = color.hex;
+
+            button.dataset.color = color.name;
+            button.setAttribute(
+                "aria-label",
+                `Cor ${color.name}`
+            );
+
+            const name = document.createElement("span");
+            name.textContent = color.name;
+
+            button.appendChild(name);
+
+            button.addEventListener("click", () => {
+                if (memory) {
+                    game.guessMemory(color, button);
+                } else {
+                    game.guess(color, button);
+                }
+            });
+
+            container.appendChild(button);
+        });
+    }
+
+    disableOptions() {
+        const buttons = this.elements.colorOptions.querySelectorAll(
+            "button"
+        );
+
+        buttons.forEach((button) => {
+            button.disabled = true;
+        });
+    }
+
+    showFeedback(message, type = "") {
+        const feedback = this.elements.feedback;
+
+        feedback.textContent = message;
+        feedback.className = "feedback";
+
+        if (type) {
+            feedback.classList.add(type);
+        }
+    }
+
+    clearFeedback() {
+        const feedback = this.elements.feedback;
+
+        feedback.textContent = "";
+        feedback.className = "feedback";
+    }
+
+    showHint(message) {
+        const hint = this.elements.hint;
+
+        hint.textContent = message;
+        hint.classList.remove("hidden");
+        hint.classList.add("show");
+    }
+
+    clearHint() {
+        const hint = this.elements.hint;
+
+        hint.textContent = "";
+        hint.classList.remove("show");
+        hint.classList.add("hidden");
+    }
+
+    showTimer(seconds) {
+        const timer = this.elements.timer;
+        const container = timer.closest(".stat");
+
+        timer.textContent = seconds;
+
+        if (container) {
+            container.classList.remove("hidden");
+        }
+    }
+
+    hideTimer() {
+        const timer = this.elements.timer;
+        const container = timer.closest(".stat");
+
+        if (container) {
+            container.classList.add("hidden");
+        }
+    }
+
+    showMemoryTimer(seconds) {
+        const timer = this.elements.memoryTimer;
+
+        timer.textContent = seconds;
+        timer.classList.remove("hidden");
+        timer.style.display = "grid";
+    }
+
+    hideMemoryTimer() {
+        const timer = this.elements.memoryTimer;
+
+        timer.textContent = "";
+        timer.classList.add("hidden");
+        timer.style.display = "none";
+    }
+
+    startMemoryDisplay(color, seconds) {
+        document.body.classList.add("memory-mode");
+
+        this.elements.colorDisplay.style.backgroundColor = color;
+
+        this.elements.colorCode.textContent = "";
+
+        this.showMemoryTimer(seconds);
+    }
+
+    hideMemoryColor() {
+        this.elements.colorDisplay.style.backgroundColor =
+            "var(--surface)";
+
+        this.elements.colorCode.textContent = "";
+
+        this.hideMemoryTimer();
+    }
+
+    showGameOver({
+        score,
+        streak,
+        accuracy,
+        message
+    }) {
+        this.elements.finalScore.textContent = score;
+        this.elements.finalStreak.textContent = streak;
+        this.elements.finalAccuracy.textContent = `${accuracy}%`;
+        this.elements.gameOverMessage.textContent = message;
+
+        this.elements.gameOverModal.classList.remove("hidden");
+        this.elements.gameOverModal.classList.add("show");
+    }
+
+    hideModal() {
+        this.elements.gameOverModal.classList.remove("show");
+        this.elements.gameOverModal.classList.add("hidden");
+    }
+
+    setQuestionLabel(text) {
+        if (this.elements.questionLabel) {
+            this.elements.questionLabel.textContent = text;
+        }
+    }
+}
 
 const stats = loadStats();
 
-class GameUI {
-  getDifficulty() {
-    return elements.difficulty.value;
-  }
+const ui = new GameUI(elements);
 
-  getGameMode() {
-    return elements.gameMode.value;
-  }
-
-  getColorFormat() {
-    return elements.colorFormat.value;
-  }
-
-  setStatusType(type) {
-    const label = document.querySelector(
-      "#livesLabel"
-    );
-
-    if (!label) return;
-
-    label.textContent =
-      type === "attempts"
-        ? "🎯 Tentativas"
-        : "❤️ Vidas";
-  }
-
-  updateStatus({
-    score,
-    streak,
-    lives,
-    round,
-    attempts
-  }) {
-    if (elements.score) {
-      elements.score.textContent = score;
-    }
-
-    if (elements.streak) {
-      elements.streak.textContent = streak;
-    }
-
-    if (elements.lives) {
-      elements.lives.textContent = lives;
-    }
-
-    if (elements.round) {
-      elements.round.textContent = round;
-    }
-
-    if (elements.attempts) {
-      elements.attempts.textContent = attempts;
-    }
-  }
-
-  updateStats(stats, accuracy) {
-    if (elements.highScore) {
-      elements.highScore.textContent =
-        stats.highScore;
-    }
-
-    if (elements.bestStreak) {
-      elements.bestStreak.textContent =
-        stats.bestStreak;
-    }
-
-    if (elements.totalGames) {
-      elements.totalGames.textContent =
-        stats.totalGames;
-    }
-
-    if (elements.accuracy) {
-      elements.accuracy.textContent =
-        `${accuracy}%`;
-    }
-  }
-
-  updateAccuracy(accuracy) {
-    // Mantido para compatibilidade com o game.js.
-  }
-
-  showColorCode(code) {
-    if (!elements.colorCode) return;
-
-    elements.colorCode.textContent = code || "";
-  }
-
-  renderOptions(options, memoryMode = false) {
-    if (!elements.colorOptions) return;
-
-    elements.colorOptions.innerHTML = "";
-
-    options.forEach(color => {
-      const button = document.createElement("button");
-
-      button.type = "button";
-      button.className = memoryMode
-        ? "color-option memory-option"
-        : "color-option";
-
-      button.style.backgroundColor =
-        color.hex;
-
-      button.dataset.color = color.hex;
-
-      const span =
-        document.createElement("span");
-
-      span.textContent = color.name;
-
-      button.appendChild(span);
-
-      button.addEventListener(
-        "click",
-        () => {
-          if (memoryMode) {
-            game.guessMemory(
-              color,
-              button
-            );
-          } else {
-            game.guess(
-              color,
-              button
-            );
-          }
-        }
-      );
-
-      elements.colorOptions.appendChild(
-        button
-      );
-    });
-  }
-
-  disableOptions() {
-    elements.colorOptions
-      ?.querySelectorAll("button")
-      .forEach(button => {
-        button.disabled = true;
-      });
-  }
-
-  showFeedback(message, type = "") {
-    if (!elements.feedback) return;
-
-    elements.feedback.textContent =
-      message;
-
-    elements.feedback.className =
-      `feedback ${type}`.trim();
-  }
-
-  clearFeedback() {
-    if (!elements.feedback) return;
-
-    elements.feedback.textContent = "";
-    elements.feedback.className =
-      "feedback";
-  }
-
-  showHint(message) {
-    if (!elements.hint) return;
-
-    elements.hint.textContent = message;
-    elements.hint.classList.add("show");
-  }
-
-  clearHint() {
-    if (!elements.hint) return;
-
-    elements.hint.textContent = "";
-    elements.hint.classList.remove("show");
-  }
-
-  showTimer(seconds) {
-    if (!elements.timer) return;
-
-    elements.timer.textContent =
-      `${seconds}s`;
-
-    elements.timer.parentElement?.classList
-      .remove("hidden");
-  }
-
-  hideTimer() {
-    if (!elements.timer) return;
-
-    elements.timer.parentElement?.classList
-      .add("hidden");
-  }
-
-  showMemoryTimer(seconds) {
-    if (!elements.memoryTimer) return;
-
-    elements.memoryTimer.textContent =
-      seconds;
-  }
-
-  startMemoryDisplay(color, seconds) {
-    document.body.classList.add(
-      "memory-mode"
-    );
-
-    if (elements.colorDisplay) {
-      elements.colorDisplay.style.background =
-        color;
-    }
-
-    if (elements.colorCode) {
-      elements.colorCode.textContent = "";
-    }
-
-    if (elements.memoryTimer) {
-      elements.memoryTimer.textContent =
-        seconds;
-      elements.memoryTimer.style.display =
-        "grid";
-    }
-  }
-
-  hideMemoryColor() {
-    if (elements.colorDisplay) {
-      elements.colorDisplay.style.background =
-        "var(--surface)";
-    }
-
-    if (elements.memoryTimer) {
-      elements.memoryTimer.style.display =
-        "none";
-    }
-  }
-
-  showGameOver({
-    score,
-    streak,
-    accuracy,
-    message
-  }) {
-    if (elements.finalScore) {
-      elements.finalScore.textContent =
-        score;
-    }
-
-    if (elements.finalStreak) {
-      elements.finalStreak.textContent =
-        streak;
-    }
-
-    if (elements.finalAccuracy) {
-      elements.finalAccuracy.textContent =
-        `${accuracy}%`;
-    }
-
-    if (elements.gameOverMessage) {
-      elements.gameOverMessage.textContent =
-        message;
-    }
-
-    elements.gameOverModal
-      ?.classList.add("show");
-  }
-
-  hideModal() {
-    elements.gameOverModal
-      ?.classList.remove("show");
-  }
-}
-
-const ui = new GameUI();
-const game = new ColorGame(
-  ui,
-  stats
-);
+const game = new ColorGame(ui, stats);
 
 function updateSoundButton() {
-  if (!elements.soundButton) return;
+    const enabled = stats.soundEnabled !== false;
 
-  elements.soundButton.textContent =
-    stats.soundEnabled
-      ? "🔊"
-      : "🔇";
+    elements.soundButton.textContent = enabled
+        ? "🔊"
+        : "🔇";
 
-  elements.soundButton.title =
-    stats.soundEnabled
-      ? "Desativar sons"
-      : "Ativar sons";
+    elements.soundButton.setAttribute(
+        "aria-label",
+        enabled
+            ? "Desativar som"
+            : "Ativar som"
+    );
+
+    elements.soundButton.title = enabled
+        ? "Desativar som"
+        : "Ativar som";
 }
 
 function applyTheme() {
-  const theme = loadTheme();
+    const theme = loadTheme();
 
-  document.body.dataset.theme =
-    theme;
+    document.body.dataset.theme = theme;
 
-  if (elements.themeButton) {
     elements.themeButton.textContent =
-      theme === "dark"
-        ? "☀️"
-        : "🌙";
-  }
+        theme === "dark" ? "☀️" : "🌙";
+
+    elements.themeButton.setAttribute(
+        "aria-label",
+        theme === "dark"
+            ? "Ativar tema claro"
+            : "Ativar tema escuro"
+    );
+
+    elements.themeButton.title =
+        theme === "dark"
+            ? "Ativar tema claro"
+            : "Ativar tema escuro";
 }
 
-elements.restartButton?.addEventListener(
-  "click",
-  () => game.start()
-);
 
-elements.hintButton?.addEventListener(
-  "click",
-  () => {
-    if (!game.secret) return;
+/* =========================
+   CONTROLES DO JOGO
+========================= */
 
-    ui.showHint(
-      `Dica: a cor secreta é "${game.secret.name}".`
-    );
-  }
-);
+elements.restartButton.addEventListener("click", () => {
+    ui.hideModal();
+    game.start();
+});
 
-elements.difficulty?.addEventListener(
-  "change",
-  () => game.start()
-);
 
-elements.gameMode?.addEventListener(
-  "change",
-  () => game.start()
-);
+elements.playAgainButton?.addEventListener("click", () => {
+    ui.hideModal();
+    game.start();
+});
 
-elements.colorFormat?.addEventListener(
-  "change",
-  () => {
-    if (game.gameActive) {
-      game.renderQuestion();
+
+elements.hintButton.addEventListener("click", () => {
+    game.showHint();
+});
+
+
+elements.difficulty.addEventListener("change", () => {
+    game.start();
+});
+
+
+elements.gameMode.addEventListener("change", () => {
+    game.start();
+});
+
+
+elements.colorFormat.addEventListener("change", () => {
+
+    if (!game.gameActive) {
+        return;
     }
-  }
-);
 
-elements.themeButton?.addEventListener(
-  "click",
-  () => {
-    const dark =
-      document.body.dataset.theme ===
-      "dark";
+    if (game.getMode() === "memory") {
+        return;
+    }
 
-    const theme =
-      dark ? "light" : "dark";
+    game.renderQuestion();
+});
 
-    document.body.dataset.theme =
-      theme;
 
-    localStorage.setItem(
-      "colorGuessTheme",
-      theme
-    );
+/* =========================
+   TEMA
+========================= */
 
-    elements.themeButton.textContent =
-      dark ? "🌙" : "☀️";
-  }
-);
+elements.themeButton.addEventListener("click", () => {
 
-elements.soundButton?.addEventListener(
-  "click",
-  () => {
+    const currentTheme = loadTheme();
+
+    const newTheme =
+        currentTheme === "dark"
+            ? "light"
+            : "dark";
+
+    saveTheme(newTheme);
+
+    applyTheme();
+});
+
+
+/* =========================
+   SOM
+========================= */
+
+elements.soundButton.addEventListener("click", () => {
+
     stats.soundEnabled =
-      !stats.soundEnabled;
+        stats.soundEnabled === false;
 
     saveStats(stats);
-    updateSoundButton();
-  }
-);
 
-elements.resetStats?.addEventListener(
-  "click",
-  () => {
+    updateSoundButton();
+});
+
+
+/* =========================
+   RESETAR ESTATÍSTICAS
+========================= */
+
+elements.resetStats?.addEventListener("click", () => {
+
     const confirmed = confirm(
-      "Deseja realmente apagar todas as estatísticas?"
+        "Deseja realmente apagar todas as estatísticas?"
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+        return;
+    }
 
     resetStats();
 
-    Object.assign(stats, {
-      highScore: 0,
-      bestStreak: 0,
-      totalGames: 0,
-      correctAnswers: 0,
-      totalAnswers: 0
-    });
+    Object.assign(stats, loadStats());
 
-    ui.updateStats(stats, 0);
-  }
-);
+    const accuracy = game.getPersistentAccuracy();
 
-elements.closeModal?.addEventListener(
-  "click",
-  () => {
+    ui.updateStats(stats, accuracy);
+});
+
+
+/* =========================
+   MODAL
+========================= */
+
+elements.closeModal.addEventListener("click", () => {
     ui.hideModal();
-  }
-);
+});
 
-elements.gameOverModal?.addEventListener(
-  "click",
-  event => {
-    if (
-      event.target ===
-      elements.gameOverModal
-    ) {
-      ui.hideModal();
+
+elements.gameOverModal.addEventListener("click", (event) => {
+
+    if (event.target === elements.gameOverModal) {
+        ui.hideModal();
     }
-  }
-);
+});
+
+
+/* =========================
+   INICIALIZAÇÃO
+========================= */
 
 applyTheme();
 updateSoundButton();
+
 ui.updateStats(
-  stats,
-  stats.totalAnswers
-    ? Math.round(
-        (stats.correctAnswers /
-          stats.totalAnswers) *
-          100
-      )
-    : 0
+    stats,
+    game.getPersistentAccuracy()
 );
 
 game.start();
