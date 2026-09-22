@@ -1,25 +1,458 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jogo de Adivinhação de Cores</title>
+
+  <meta
+    name="description"
+    content="Color Guess — jogo de adivinhação e memória de cores."
+  >
+
+  <title>Color Guess</title>
+
   <link rel="stylesheet" href="styles.css">
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"
+  ></script>
 </head>
+
 <body>
-  <main class="container">
-    <h1>🎨 Jogo de Adivinhação de Cores 🎨</h1>
-    <p>Escolha uma das cores disponíveis e veja se consegue adivinhar a cor secreta!</p>
-    <div id="availableColors"></div>
-    <label for="userColor">Sua escolha:</label>
-    <input type="text" id="userColor" placeholder="Digite o nome da cor">
-    <button id="guessButton">Tentar</button>
-    <div id="feedback"></div>
-    <div id="tentativas"></div>
-    <div id="score">Pontuação: 0</div>
-    <button id="resetButton" style="display: none;">Jogar Novamente</button>
+
+  <main class="game">
+
+    <header class="game-header">
+
+      <div>
+        <span class="eyebrow">🎨 COLOR GUESS</span>
+
+        <h1>Jogo de Cores</h1>
+
+        <p>
+          Teste seu conhecimento e sua memória visual.
+        </p>
+      </div>
+
+      <div class="header-actions">
+
+        <button
+          id="themeButton"
+          class="icon-button"
+          type="button"
+          aria-label="Alternar tema"
+        >
+          🌙
+        </button>
+
+        <button
+          id="soundButton"
+          class="icon-button"
+          type="button"
+          aria-label="Ativar ou desativar sons"
+        >
+          🔊
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- CONFIGURAÇÕES -->
+
+    <section class="settings">
+
+      <div class="setting-group">
+
+        <label for="difficulty">
+          Dificuldade
+        </label>
+
+        <select id="difficulty">
+
+          <option value="easy">
+            Fácil
+          </option>
+
+          <option value="medium" selected>
+            Médio
+          </option>
+
+          <option value="hard">
+            Difícil
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="setting-group">
+
+        <label for="gameMode">
+          Modo de jogo
+        </label>
+
+        <select id="gameMode">
+
+          <option value="classic">
+            🎯 Clássico
+          </option>
+
+          <option value="time">
+            ⏱️ Time Attack
+          </option>
+
+          <option value="memory">
+            🧠 Memória
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="setting-group">
+
+        <label for="colorFormat">
+          Formato
+        </label>
+
+        <select id="colorFormat">
+
+          <option value="rgb">
+            RGB
+          </option>
+
+          <option value="hex">
+            HEX
+          </option>
+
+          <option value="hsl">
+            HSL
+          </option>
+
+        </select>
+
+      </div>
+
+    </section>
+
+
+    <!-- STATUS -->
+
+    <section
+      class="status-panel"
+      aria-label="Status da partida"
+    >
+
+      <div class="stat">
+        <span>🏆 Pontos</span>
+        <strong id="score">0</strong>
+      </div>
+
+      <div class="stat">
+        <span>🔥 Streak</span>
+        <strong id="streak">0</strong>
+      </div>
+
+      <div class="stat">
+        <span>❤️ Vidas</span>
+        <strong id="lives">3</strong>
+      </div>
+
+      <div class="stat">
+        <span id="timerLabel">⏱️ Tempo</span>
+        <strong id="timer">--</strong>
+      </div>
+
+    </section>
+
+
+    <!-- JOGO -->
+
+    <section class="game-card">
+
+      <div class="round-info">
+
+        <span id="round">
+          Rodada 1
+        </span>
+
+        <span id="attempts">
+          Tentativas: 0
+        </span>
+
+      </div>
+
+
+      <!-- ÁREA DE PERGUNTA -->
+
+      <div
+        id="colorDisplay"
+        class="color-display"
+      >
+
+        <span
+          id="questionLabel"
+          class="question-label"
+        >
+          Qual é esta cor?
+        </span>
+
+        <div
+          id="colorCode"
+          class="color-code"
+        >
+          rgb(255, 0, 0)
+        </div>
+
+      </div>
+
+
+      <!-- CONTADOR DA MEMÓRIA -->
+
+      <div
+        id="memoryTimer"
+        class="memory-timer hidden"
+        aria-live="polite"
+      >
+        3
+      </div>
+
+
+      <!-- DICA -->
+
+      <div
+        id="hint"
+        class="hint hidden"
+        role="status"
+        aria-live="polite"
+      >
+      </div>
+
+
+      <!-- PALETA -->
+
+      <div
+        id="colorOptions"
+        class="color-options"
+        role="group"
+        aria-label="Opções de cores"
+      >
+      </div>
+
+
+      <!-- FEEDBACK -->
+
+      <div
+        id="feedback"
+        class="feedback"
+        role="status"
+        aria-live="polite"
+      >
+      </div>
+
+
+      <!-- AÇÕES -->
+
+      <div class="game-actions">
+
+        <button
+          id="hintButton"
+          class="secondary-button"
+          type="button"
+        >
+          💡 Dica
+        </button>
+
+        <button
+          id="restartButton"
+          class="primary-button"
+          type="button"
+        >
+          🔄 Novo jogo
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ESTATÍSTICAS -->
+
+    <section class="statistics">
+
+      <div class="section-title">
+
+        <div>
+
+          <span class="eyebrow">
+            SEU DESEMPENHO
+          </span>
+
+          <h2>Estatísticas</h2>
+
+        </div>
+
+        <button
+          id="resetStatsButton"
+          class="text-button"
+          type="button"
+        >
+          Resetar
+        </button>
+
+      </div>
+
+
+      <div class="statistics-grid">
+
+        <div class="stat-card">
+
+          <span>🏆</span>
+
+          <div>
+            <small>High Score</small>
+            <strong id="highScore">0</strong>
+          </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span>🔥</span>
+
+          <div>
+            <small>Maior Streak</small>
+            <strong id="bestStreak">0</strong>
+          </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span>🎮</span>
+
+          <div>
+            <small>Partidas</small>
+            <strong id="totalGames">0</strong>
+          </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span>🎯</span>
+
+          <div>
+            <small>Precisão</small>
+            <strong id="accuracy">0%</strong>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <footer>
+
+      <p>
+        Desenvolvido com HTML5, CSS3 e JavaScript.
+      </p>
+
+      <p>
+        Color Guess v2.0
+      </p>
+
+    </footer>
+
   </main>
-  <script src="script.js"></script>
+
+
+  <!-- MODAL -->
+
+  <div
+    id="gameOverModal"
+    class="modal hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="gameOverTitle"
+  >
+
+    <div class="modal-content">
+
+      <button
+        id="closeModal"
+        class="modal-close"
+        type="button"
+        aria-label="Fechar"
+      >
+        ×
+      </button>
+
+      <span class="modal-icon">
+        🎮
+      </span>
+
+      <h2 id="gameOverTitle">
+        Fim de jogo!
+      </h2>
+
+      <p id="gameOverMessage">
+        Boa tentativa!
+      </p>
+
+      <div class="final-score">
+
+        <span>
+          Pontuação final
+        </span>
+
+        <strong id="finalScore">
+          0
+        </strong>
+
+      </div>
+
+      <div class="modal-stats">
+
+        <div>
+          <small>Streak</small>
+          <strong id="finalStreak">0</strong>
+        </div>
+
+        <div>
+          <small>Precisão</small>
+          <strong id="finalAccuracy">0%</strong>
+        </div>
+
+      </div>
+
+      <button
+        id="playAgainButton"
+        class="primary-button modal-button"
+        type="button"
+      >
+        🔄 Jogar novamente
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <script
+    type="module"
+    src="js/script.js"
+  ></script>
+
 </body>
 </html>
-

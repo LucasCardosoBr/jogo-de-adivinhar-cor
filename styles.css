@@ -1,123 +1,150 @@
-:root {
-    --primary-color: #4a90e2;
-    --background-color: #f3f4f6;
-    --text-color: #333;
-    --border-color: #ccc;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --error-color: #dc3545;
+/* =========================
+   MEMÓRIA
+========================= */
+
+.memory-timer {
+  margin: 20px auto;
+
+  width: 80px;
+  height: 80px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: var(--primary);
+
+  color: white;
+
+  font-size: 2rem;
+  font-weight: 800;
+
+  box-shadow:
+    0 10px 30px rgba(99, 102, 241, 0.3);
+
+  animation: memoryPulse 1s infinite;
+}
+
+
+.memory-mode .color-display {
+  min-height: 220px;
+
+  display: grid;
+  place-items: center;
+}
+
+
+.memory-mode .color-code {
+  display: none;
+}
+
+
+.memory-hidden {
+  visibility: hidden;
+}
+
+
+/* =========================
+   ANIMAÇÃO MEMÓRIA
+========================= */
+
+@keyframes memoryPulse {
+
+  0%,
+  100% {
+    transform: scale(1);
   }
-  
-  body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background-color: var(--background-color);
-    color: var(--text-color);
+
+  50% {
+    transform: scale(1.08);
   }
-  
-  .container {
-    text-align: center;
-    background: #ffffff;
-    border: 2px solid var(--border-color);
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    width: 100%;
+}
+
+
+/* =========================
+   PALETA MEMÓRIA
+========================= */
+
+.memory-option {
+  min-height: 100px;
+}
+
+
+.memory-option span {
+  display: none;
+}
+
+
+.memory-option:hover {
+  transform: scale(1.04);
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 480px) {
+
+  .memory-option {
+    min-height: 80px;
   }
-  
-  h1 {
-    font-size: 1.8em;
-    color: var(--primary-color);
-    margin-bottom: 20px;
+
+  .memory-timer {
+    width: 65px;
+    height: 65px;
+
+    font-size: 1.6rem;
   }
-  
-  label {
-    display: block;
-    margin-bottom: 5px;
+
+}
+
+.memory-timer {
+  display: none;
+}
+
+.memory-mode .memory-timer {
+  display: grid;
+}
+
+.memory-mode .color-code {
+  display: none;
+}
+
+.memory-mode .color-display {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+}
+
+.memory-option {
+  min-height: 100px;
+}
+
+.memory-option:hover {
+  transform: scale(1.04);
+}
+
+@keyframes memoryPulse {
+  0%,
+  100% {
+    transform: scale(1);
   }
-  
-  input {
-    width: 80%;
-    padding: 10px;
-    font-size: 1em;
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    margin-bottom: 10px;
-    outline: none;
-    transition: border-color 0.3s;
+
+  50% {
+    transform: scale(1.08);
   }
-  
-  input:focus {
-    border-color: var(--primary-color);
+}
+
+@media (max-width: 480px) {
+  .memory-option {
+    min-height: 80px;
   }
-  
-  button {
-    padding: 10px 20px;
-    font-size: 1em;
-    color: white;
-    background-color: var(--primary-color);
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
+
+  .memory-timer {
+    width: 65px;
+    height: 65px;
+    font-size: 1.6rem;
   }
-  
-  button:hover {
-    background-color: #357ab8;
-  }
-  
-  button:active {
-    transform: scale(0.98);
-  }
-  
-  #feedback {
-    margin-top: 15px;
-    font-size: 1.2em;
-    font-weight: bold;
-    transition: color 0.3s;
-  }
-  
-  #tentativas, #score {
-    margin-top: 10px;
-    font-size: 1em;
-    color: #888;
-  }
-  
-  #feedback.success { color: var(--success-color); }
-  #feedback.warning { color: var(--warning-color); }
-  #feedback.error { color: var(--error-color); }
-  
-  #availableColors {
-    margin: 10px 0;
-    font-size: 0.9em;
-  }
-  
-  #resetButton {
-    margin-top: 10px;
-    background-color: #6c757d;
-  }
-  
-  #resetButton:hover {
-    background-color: #5a6268;
-  }
-  
-  @media (max-width: 480px) {
-    .container {
-      padding: 15px;
-    }
-  
-    h1 {
-      font-size: 1.5em;
-    }
-  
-    input, button {
-      width: 100%;
-    }
-  }
-  
-  
+}
