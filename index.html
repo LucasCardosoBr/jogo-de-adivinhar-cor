@@ -2,10 +2,27 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Desafio de Cores - teste sua memória e percepção de cores">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="description"
+    content="Desafio de Cores: teste sua memória, velocidade e percepção de cores."
+  >
+
+  <meta
+    name="theme-color"
+    content="#6366f1"
+  >
+
   <title>Desafio de Cores</title>
-  <link rel="stylesheet" href="styles.css">
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
 </head>
 
 <body>
@@ -13,31 +30,59 @@
 
     <header class="game-header">
       <div>
-        <span class="eyebrow">DESAFIO</span>
-        <h1>🎨 Desafio de Cores</h1>
-        <p>Teste sua memória, velocidade e percepção de cores.</p>
+        <span class="eyebrow">
+          DESAFIO
+        </span>
+
+        <h1>
+          🎨 Desafio de Cores
+        </h1>
+
+        <p>
+          Teste sua memória, velocidade e percepção de cores.
+        </p>
       </div>
 
       <div class="game-options">
-        <label>
+
+        <label for="gameMode">
           Modo
+
           <select id="gameMode">
-            <option value="match">🎨 Combinação</option>
-            <option value="speed">⚡ Relâmpago</option>
-            <option value="sequence">🧠 Sequência</option>
+            <option value="match">
+              🎨 Combinação
+            </option>
+
+            <option value="speed">
+              ⚡ Relâmpago
+            </option>
+
+            <option value="sequence">
+              🧠 Sequência
+            </option>
           </select>
         </label>
 
-        <label>
+        <label for="difficulty">
           Dificuldade
+
           <select id="difficulty">
-            <option value="easy">Fácil</option>
-            <option value="medium">Médio</option>
-            <option value="hard">Difícil</option>
+            <option value="easy">
+              Fácil
+            </option>
+
+            <option value="medium">
+              Médio
+            </option>
+
+            <option value="hard">
+              Difícil
+            </option>
           </select>
         </label>
 
         <div class="option-buttons">
+
           <button
             id="soundButton"
             class="icon-button"
@@ -57,11 +102,18 @@
           >
             🌙
           </button>
+
         </div>
+
       </div>
     </header>
 
-    <section class="stats">
+
+    <section
+      class="stats"
+      aria-label="Estatísticas da partida"
+    >
+
       <div class="stat">
         <span>Pontos</span>
         <strong id="score">0</strong>
@@ -81,27 +133,78 @@
         <span>Rodada</span>
         <strong id="round">1</strong>
       </div>
-    </section>
 
-    <section class="game-card">
-
-      <div class="timer" id="timer">3.0</div>
-
-      <div class="target-area">
-        <div id="colorTarget" class="color-target"></div>
-        <p id="targetMessage">Memorize esta cor!</p>
+      <div class="stat">
+        <span>Recorde</span>
+        <strong id="highScore">0</strong>
       </div>
 
-      <!-- MODO COMBINAÇÃO -->
-      <div id="matchControls" class="controls hidden">
-        <h2>Recrie a cor</h2>
+      <div class="stat">
+        <span>Melhor Combo</span>
+        <strong id="bestStreak">0</strong>
+      </div>
 
-        <div id="colorPreview" class="color-preview"></div>
+    </section>
+
+
+    <section
+      class="game-card"
+      aria-label="Área do jogo"
+    >
+
+      <div
+        class="timer"
+        id="timer"
+        aria-live="polite"
+        aria-label="Tempo restante"
+      >
+        3.0
+      </div>
+
+
+      <div class="target-area">
+
+        <div
+          id="colorTarget"
+          class="color-target"
+          role="img"
+          aria-label="Cor para memorizar"
+        ></div>
+
+        <p
+          id="targetMessage"
+          aria-live="polite"
+        >
+          Memorize esta cor!
+        </p>
+
+      </div>
+
+
+      <div
+        id="matchControls"
+        class="controls hidden"
+      >
+
+        <h2>
+          Recrie a cor
+        </h2>
+
+        <div
+          id="colorPreview"
+          class="color-preview"
+          role="img"
+          aria-label="Pré-visualização da sua cor"
+        ></div>
+
 
         <div class="slider-group">
+
           <label for="hue">
             <span>Matiz</span>
-            <output id="hueValue">180°</output>
+            <output id="hueValue">
+              180°
+            </output>
           </label>
 
           <input
@@ -110,13 +213,19 @@
             min="0"
             max="360"
             value="180"
+            aria-label="Matiz"
           >
+
         </div>
 
+
         <div class="slider-group">
+
           <label for="saturation">
             <span>Saturação</span>
-            <output id="saturationValue">50%</output>
+            <output id="saturationValue">
+              50%
+            </output>
           </label>
 
           <input
@@ -125,13 +234,19 @@
             min="0"
             max="100"
             value="50"
+            aria-label="Saturação"
           >
+
         </div>
 
+
         <div class="slider-group">
+
           <label for="lightness">
             <span>Brilho</span>
-            <output id="lightnessValue">50%</output>
+            <output id="lightnessValue">
+              50%
+            </output>
           </label>
 
           <input
@@ -140,85 +255,225 @@
             min="0"
             max="100"
             value="50"
+            aria-label="Brilho"
           >
+
         </div>
 
-        <button id="checkButton" class="primary-button" type="button">
+
+        <button
+          id="checkButton"
+          class="primary-button"
+          type="button"
+          disabled
+        >
           Verificar cor
         </button>
+
       </div>
 
-      <!-- MODO RELÂMPAGO -->
-      <div id="speedControls" class="controls hidden">
-        <h2>⚡ Qual era a cor?</h2>
 
-        <div id="speedPreview" class="speed-preview"></div>
+      <div
+        id="speedControls"
+        class="controls hidden"
+      >
 
-        <div class="speed-options" id="speedOptions">
-          <button type="button" class="color-option"></button>
-          <button type="button" class="color-option"></button>
-          <button type="button" class="color-option"></button>
-          <button type="button" class="color-option"></button>
+        <h2>
+          ⚡ Qual era a cor?
+        </h2>
+
+        <div
+          id="speedPreview"
+          class="speed-preview"
+          aria-hidden="true"
+        ></div>
+
+        <div
+          class="speed-options"
+          id="speedOptions"
+          aria-label="Opções de cores"
+        >
+
+          <button
+            type="button"
+            class="color-option"
+            aria-label="Opção de cor 1"
+          ></button>
+
+          <button
+            type="button"
+            class="color-option"
+            aria-label="Opção de cor 2"
+          ></button>
+
+          <button
+            type="button"
+            class="color-option"
+            aria-label="Opção de cor 3"
+          ></button>
+
+          <button
+            type="button"
+            class="color-option"
+            aria-label="Opção de cor 4"
+          ></button>
+
         </div>
+
       </div>
 
-      <!-- MODO SEQUÊNCIA -->
-      <div id="sequenceControls" class="controls hidden">
-        <h2>🧠 Reproduza a sequência</h2>
 
-        <p id="sequenceMessage" class="mode-message">
+      <div
+        id="sequenceControls"
+        class="controls hidden"
+      >
+
+        <h2>
+          🧠 Reproduza a sequência
+        </h2>
+
+        <p
+          id="sequenceMessage"
+          class="mode-message"
+          aria-live="polite"
+        >
           Observe as cores e repita a sequência.
         </p>
 
-        <div id="sequencePreview" class="sequence-preview"></div>
+        <div
+          id="sequencePreview"
+          class="sequence-preview"
+          aria-label="Sequência para memorizar"
+        ></div>
 
-        <div class="sequence-options" id="sequenceOptions">
-          <button type="button" class="sequence-color" data-color="0"></button>
-          <button type="button" class="sequence-color" data-color="1"></button>
-          <button type="button" class="sequence-color" data-color="2"></button>
-          <button type="button" class="sequence-color" data-color="3"></button>
+        <div
+          class="sequence-options"
+          id="sequenceOptions"
+          aria-label="Opções de sequência"
+        >
+
+          <button
+            type="button"
+            class="sequence-color"
+            data-color="0"
+            aria-label="Cor 1"
+          ></button>
+
+          <button
+            type="button"
+            class="sequence-color"
+            data-color="1"
+            aria-label="Cor 2"
+          ></button>
+
+          <button
+            type="button"
+            class="sequence-color"
+            data-color="2"
+            aria-label="Cor 3"
+          ></button>
+
+          <button
+            type="button"
+            class="sequence-color"
+            data-color="3"
+            aria-label="Cor 4"
+          ></button>
+
         </div>
 
         <div class="sequence-progress">
           <span>Sequência:</span>
-          <strong id="sequenceProgress">0 / 3</strong>
+
+          <strong
+            id="sequenceProgress"
+            aria-live="polite"
+          >
+            0 / 3
+          </strong>
         </div>
+
       </div>
 
-      <!-- RESULTADO -->
-      <div id="result" class="result hidden">
-        <h2 id="resultTitle">Resultado</h2>
+
+      <div
+        id="result"
+        class="result hidden"
+        aria-live="polite"
+      >
+
+        <h2 id="resultTitle">
+          Resultado
+        </h2>
 
         <div class="result-colors">
+
           <div>
             <span>Original</span>
-            <div id="originalColor" class="result-color"></div>
+
+            <div
+              id="originalColor"
+              class="result-color"
+              aria-hidden="true"
+            ></div>
           </div>
 
           <div>
             <span>Sua cor</span>
-            <div id="guessedColor" class="result-color"></div>
+
+            <div
+              id="guessedColor"
+              class="result-color"
+              aria-hidden="true"
+            ></div>
           </div>
+
         </div>
 
-        <strong id="scoreResult">0 / 1000</strong>
+        <strong id="scoreResult">
+          0 / 1000
+        </strong>
 
         <p id="resultMessage"></p>
 
-        <button id="nextButton" class="primary-button" type="button">
+        <button
+          id="nextButton"
+          class="primary-button"
+          type="button"
+          disabled
+        >
           Próxima rodada
         </button>
+
+        <button
+          id="restartButton"
+          class="secondary-button"
+          type="button"
+        >
+          🔄 Jogar novamente
+        </button>
+
       </div>
 
     </section>
 
+
     <footer class="game-footer">
-      <span>Desafio de Cores</span>
-      <span>Teste sua memória 🎨</span>
+      <span>
+        Desafio de Cores
+      </span>
+
+      <span>
+        Teste sua memória 🎨
+      </span>
     </footer>
 
   </main>
 
-  <script type="module" src="js/color-match/color-match.js"></script>
+  <script
+    type="module"
+    src="js/color-match/color-match.js"
+  ></script>
+
 </body>
 </html>

@@ -1,84 +1,118 @@
-import{
+import {
   hsl,
   calculateScore
-}from"./color-utils.js";
+} from "./color-utils.js";
 
-import{
+import {
   createMatchRound,
   createSpeedRound,
   createSequenceRound,
   getSettings
-}from"./modes.js";
+} from "./modes.js";
 
-import{ColorMatchUI}from"./color-match-ui.js";
+import { ColorMatchUI } from "./color-match-ui.js";
 
-import{
+import {
   applySavedTheme,
   toggleTheme
-}from"./theme.js";
+} from "./theme.js";
 
-import{playSound}from"../audio.js";
+import {
+  isSoundEnabled,
+  setSoundEnabled,
+  getStats,
+  updateStats
+} from "../storage.js";
 
-const ui=new ColorMatchUI();
+import { playSound } from "../audio.js";
 
-let score=0;
-let streak=0;
-let lives=5;
-let round=1;
+const ui = new ColorMatchUI();
+let stats = getStats();
 
-let currentRound=null;
-let timer=null;
-let locked=false;
-let sequenceAnswer=[];
+let score = 0;
+let streak = 0;
+let lives = 5;
+let round = 1;
 
-const difficultySettings={
-  easy:{lives:5},
-  medium:{lives:4},
-  hard:{lives:3}
-};
+let currentRound = null;
+let timer = null;
+let locked = false;
+let sequenceAnswer = [];
 
-function soundEnabled(){
-  return localStorage.getItem(
-    "colorGameSound"
-  )!=="off";
+function sound(type) {
+  playSound(type, isSoundEnabled());
 }
 
-function sound(type){
-  playSound(
-    type,
-    soundEnabled()
+function getDifficultySettings() {
+  return getSettings(ui.getDifficulty());
+}
+
+function clearGameTimer() {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+}
+
+function startNewGame() {
+  const settings =
+    getDifficultySettings();
+
+  score = 0;
+  streak = 0;
+  round = 1;
+  lives = settings.lives;
+
+  stats.games++;
+
+  updateStats(stats);
+
+  ui.updateRecords(
+    stats.highScore,
+    stats.bestStreak
   );
+
+  startRound();
 }
 
-function getDifficultySettings(){
-  return difficultySettings[
-    ui.getDifficulty()
-  ]||difficultySettings.easy;
+function resetGame() {
+  const settings =
+    getDifficultySettings();
+
+  score = 0;
+  streak = 0;
+  round = 1;
+  lives = settings.lives;
+
+  ui.updateRecords(
+    stats.highScore,
+    stats.bestStreak
+  );
+
+  startRound();
 }
 
-function startRound(){
-  clearInterval(timer);
+function startRound() {
+  clearGameTimer();
 
-  locked=true;
-  sequenceAnswer=[];
+  locked = true;
+  sequenceAnswer = [];
 
   ui.hideResult();
   ui.hideControls();
   ui.setCheckEnabled(false);
   ui.setNextEnabled(false);
-
   ui.resetSliders();
   ui.clearSequencePreview();
+  ui.setTargetAreaVisible(true);
 
-  const mode=ui.getMode();
+  const mode = ui.getMode();
 
-  sound("click");
-
-  if(mode==="match"){
+  if (mode === "match") {
     startMatchRound();
-  }else if(mode==="speed"){
+  } else if (mode === "speed") {
     startSpeedRound();
-  }else{
+  } else {
     startSequenceRound();
   }
 
@@ -90,13 +124,11 @@ function startRound(){
   );
 }
 
-function startMatchRound(){
-  currentRound=createMatchRound();
+function startMatchRound() {
+  currentRound = createMatchRound();
 
-  const settings=
-    getSettings(ui.getDifficulty());
-
-  let time=settings.time;
+  const settings = getDifficultySettings();
+  let time = settings.time;
 
   ui.showTarget(
     hsl(currentRound.target),
@@ -105,53 +137,45 @@ function startMatchRound(){
 
   ui.setTimer(time);
 
-  timer=setInterval(()=>{
-    time=Math.max(
-      0,
-      time-.1
-    );
+  timer = setInterval(() => {
+    time = Math.max(0, time - 0.1);
 
     ui.setTimer(time);
 
-    if(time<=0){
-      clearInterval(timer);
+    if (time <= 0) {
+      clearGameTimer();
       finishMatchMemory();
     }
-  },100);
+  }, 100);
 }
 
-function finishMatchMemory(){
-  ui.hideTarget(
-    "Agora recrie a cor!"
-  );
-
+function finishMatchMemory() {
+  ui.hideTarget("Agora recrie a cor!");
   ui.showModeControls("match");
   ui.setCheckEnabled(true);
 
   updatePreview();
 
-  locked=false;
+  locked = false;
 }
 
-function updatePreview(){
-  if(locked)return;
-
-  ui.updatePreview(
-    hsl(ui.getGuess())
-  );
+function updatePreview() {
+  if (!locked) {
+    ui.updatePreview(hsl(ui.getGuess()));
+  }
 }
 
-function checkMatch(){
-  if(locked)return;
+function checkMatch() {
+  if (locked) {
+    return;
+  }
 
-  locked=true;
+  locked = true;
   ui.setCheckEnabled(false);
 
-  sound("click");
+  const guess = ui.getGuess();
 
-  const guess=ui.getGuess();
-
-  const points=calculateScore(
+  const points = calculateScore(
     currentRound.target,
     guess
   );
@@ -159,9 +183,9 @@ function checkMatch(){
   processScore(points);
 
   sound(
-    points>=500
-      ?"success"
-      :"error"
+    points >= 500
+      ? "success"
+      : "error"
   );
 
   ui.showResult(
@@ -174,46 +198,36 @@ function checkMatch(){
   finishAttempt();
 }
 
-function startSpeedRound(){
-  currentRound=createSpeedRound();
+function startSpeedRound() {
+  currentRound = createSpeedRound();
 
-  const settings=
-    getSettings(ui.getDifficulty());
-
-  let time=settings.time;
+  const settings = getDifficultySettings();
+  let time = settings.time;
 
   ui.showTarget(
     hsl(currentRound.target),
     "Memorize esta cor!"
   );
 
+  ui.showSpeedPreview();
   ui.setTimer(time);
 
-  timer=setInterval(()=>{
-    time=Math.max(
-      0,
-      time-.1
-    );
+  timer = setInterval(() => {
+    time = Math.max(0, time - 0.1);
 
     ui.setTimer(time);
 
-    if(time<=0){
-      clearInterval(timer);
+    if (time <= 0) {
+      clearGameTimer();
       finishSpeedMemory();
     }
-  },100);
+  }, 100);
 }
 
-function finishSpeedMemory(){
-  ui.hideTarget(
-    "Qual era a cor?"
-  );
-
+function finishSpeedMemory() {
+  ui.hideTarget("Qual era a cor?");
   ui.showModeControls("speed");
-
-  ui.setSpeedPreview(
-    hsl(currentRound.target)
-  );
+  ui.hideSpeedPreview();
 
   ui.setSpeedOptions(
     currentRound.options.map(hsl)
@@ -221,64 +235,62 @@ function finishSpeedMemory(){
 
   ui.setTimer(0);
 
-  locked=false;
+  locked = false;
 }
 
-function checkSpeed(index){
-  if(locked)return;
+function checkSpeed(index) {
+  if (locked) {
+    return;
+  }
 
-  locked=true;
-
+  locked = true;
   ui.disableSpeedOptions();
 
-  sound("click");
+  const selectedIndex = Number(index);
 
-  const correct=
-    Number(index)===
-    currentRound.correctIndex;
+  const correct =
+    selectedIndex === currentRound.correctIndex;
 
-  const points=
-    correct?1000:0;
+  const points = correct ? 1000 : 0;
 
   processScore(points);
 
   sound(
     correct
-      ?"success"
-      :"error"
+      ? "success"
+      : "error"
   );
 
-  const correctColor=
-    hsl(
-      currentRound.options[
-        currentRound.correctIndex
-      ]
-    );
+  const correctColor = hsl(
+    currentRound.options[
+      currentRound.correctIndex
+    ]
+  );
 
-  const selectedColor=
-    hsl(
-      currentRound.options[index]
-    );
+  const selectedColor = hsl(
+    currentRound.options[selectedIndex]
+  );
 
   ui.showResult(
     correctColor,
     selectedColor,
     points,
     correct
-      ?"Perfeito! Você acertou a cor."
-      :"Você errou. Observe melhor a próxima cor."
+      ? "Perfeito! Você acertou a cor."
+      : "Você errou. Observe melhor a próxima cor."
   );
 
   finishAttempt();
 }
 
-function startSequenceRound(){
-  currentRound=
-    createSequenceRound(
-      ui.getDifficulty()
-    );
+function startSequenceRound() {
+  currentRound = createSequenceRound(
+    ui.getDifficulty()
+  );
 
-  sequenceAnswer=[];
+  sequenceAnswer = [];
+
+  ui.setTargetAreaVisible(false);
 
   ui.setSequenceProgress(
     0,
@@ -289,49 +301,38 @@ function startSequenceRound(){
     "Observe a sequência de cores."
   );
 
-  ui.showModeControls(
-    "sequence"
-  );
+  ui.showModeControls("sequence");
 
   showSequence();
 }
 
-function showSequence(){
-  const sequenceColors=
-    currentRound.sequence.map(
-      index=>
-        hsl(
-          currentRound.palette[index]
-        )
-    );
-
-  ui.setSequencePreview(
-    sequenceColors
+function showSequence() {
+  const colors = currentRound.sequence.map(
+    index => hsl(
+      currentRound.palette[index]
+    )
   );
 
-  const settings=
-    getSettings(ui.getDifficulty());
+  ui.setSequencePreview(colors);
 
-  let time=settings.time;
+  const settings = getDifficultySettings();
+  let time = settings.time;
 
   ui.setTimer(time);
 
-  timer=setInterval(()=>{
-    time=Math.max(
-      0,
-      time-.1
-    );
+  timer = setInterval(() => {
+    time = Math.max(0, time - 0.1);
 
     ui.setTimer(time);
 
-    if(time<=0){
-      clearInterval(timer);
+    if (time <= 0) {
+      clearGameTimer();
       finishSequenceMemory();
     }
-  },100);
+  }, 100);
 }
 
-function finishSequenceMemory(){
+function finishSequenceMemory() {
   ui.clearSequencePreview();
 
   ui.setSequenceMessage(
@@ -349,105 +350,140 @@ function finishSequenceMemory(){
 
   ui.setTimer(0);
 
-  locked=false;
+  locked = false;
 }
 
-function selectSequenceColor(index){
-  if(locked)return;
+function selectSequenceColor(index) {
+  if (locked) {
+    return;
+  }
 
-  sound("click");
+  const selectedIndex = Number(index);
 
-  sequenceAnswer.push(
-    Number(index)
-  );
+  sequenceAnswer.push(selectedIndex);
 
-  const current=
-    sequenceAnswer.length;
-
-  const total=
-    currentRound.sequence.length;
+  const current = sequenceAnswer.length;
+  const total = currentRound.sequence.length;
 
   ui.setSequenceProgress(
     current,
     total
   );
 
-  if(
-    sequenceAnswer[current-1] !==
-    currentRound.sequence[current-1]
-  ){
+  if (
+    selectedIndex !==
+    currentRound.sequence[current - 1]
+  ) {
     finishSequence(false);
     return;
   }
 
-  if(current===total){
+  if (current === total) {
     finishSequence(true);
   }
 }
 
-function finishSequence(correct){
-  locked=true;
+function finishSequence(correct) {
+  locked = true;
 
   ui.disableSequenceOptions();
 
-  const points=
-    correct?1000:0;
+  const points = correct ? 1000 : 0;
 
   processScore(points);
 
   sound(
     correct
-      ?"success"
-      :"error"
+      ? "success"
+      : "error"
   );
 
-  const firstColor=
-    hsl(
-      currentRound.palette[
-        currentRound.sequence[0]
-      ]
-    );
+  const firstColor = hsl(
+    currentRound.palette[
+      currentRound.sequence[0]
+    ]
+  );
 
-  const selectedIndex=
-    sequenceAnswer[
-      Math.max(
-        0,
-        sequenceAnswer.length-1
-      )
-    ]||0;
+  const selectedIndex =
+    sequenceAnswer.at(-1) ?? 0;
 
-  const selectedColor=
-    hsl(
-      currentRound.palette[
-        selectedIndex
-      ]
-    );
+  const selectedColor = hsl(
+    currentRound.palette[selectedIndex]
+  );
 
   ui.showResult(
     firstColor,
     selectedColor,
     points,
     correct
-      ?"Excelente! Você repetiu toda a sequência."
-      :"Sequência incorreta. Tente memorizar melhor."
+      ? "Excelente! Você repetiu toda a sequência."
+      : "Sequência incorreta. Tente memorizar melhor."
   );
 
   finishAttempt();
 }
 
-function processScore(points){
-  score+=points;
+function showAnswerFeedback(correct) {
+  const card =
+    document.querySelector(".game-card");
 
-  if(points>=800){
+  if (!card) {
+    return;
+  }
+
+  card.classList.remove(
+    "answer-correct",
+    "answer-wrong"
+  );
+
+  void card.offsetWidth;
+
+  card.classList.add(
+    correct
+      ? "answer-correct"
+      : "answer-wrong"
+  );
+
+  setTimeout(() => {
+    card.classList.remove(
+      "answer-correct",
+      "answer-wrong"
+    );
+  }, 500);
+}
+
+function processScore(points) {
+  score += points;
+
+  const correct = points >= 500;
+
+  if (correct) {
     streak++;
-  }else{
-    streak=0;
+  } else {
+    streak = 0;
   }
 
-  if(points<500){
+  if (points < 500) {
     lives--;
-    streak=0;
   }
+
+  stats.attempts++;
+
+  if (correct) {
+    stats.correct++;
+  }
+
+  stats.highScore = Math.max(
+    stats.highScore,
+    score
+  );
+
+  stats.bestStreak = Math.max(
+    stats.bestStreak,
+    streak
+  );
+
+  updateStats(stats);
 
   ui.updateStats(
     score,
@@ -455,10 +491,17 @@ function processScore(points){
     lives,
     round
   );
+
+  ui.updateRecords(
+    stats.highScore,
+    stats.bestStreak
+  );
+
+  showAnswerFeedback(correct);
 }
 
-function finishAttempt(){
-  if(lives<=0){
+function finishAttempt() {
+  if (lives <= 0) {
     endGame();
     return;
   }
@@ -466,116 +509,103 @@ function finishAttempt(){
   ui.setNextEnabled(true);
 }
 
-function nextRound(){
-  if(lives<=0)return;
-
-  sound("click");
+function nextRound() {
+  if (lives <= 0) {
+    return;
+  }
 
   round++;
-
   startRound();
 }
 
-function endGame(){
-  clearInterval(timer);
+function restartGame() {
+  clearGameTimer();
 
-  locked=true;
+  sound("click");
+
+  startNewGame();
+}
+
+ui.restartButton.addEventListener(
+  "click",
+  restartGame
+);
+
+function endGame() {
+  clearGameTimer();
+
+  locked = true;
 
   sound("error");
 
   ui.hideControls();
   ui.setCheckEnabled(false);
   ui.setNextEnabled(false);
+  ui.setTargetAreaVisible(true);
 
   ui.showEndGame(
     score,
     round
   );
 
-  ui.targetMessage.textContent=
+  ui.targetMessage.textContent =
     `Fim de jogo! Pontuação: ${score}`;
 }
 
-function changeDifficulty(){
-  clearInterval(timer);
-
-  sound("click");
-
-  const settings=
-    getDifficultySettings();
-
-  score=0;
-  streak=0;
-  round=1;
-  lives=settings.lives;
-
-  startRound();
+function changeDifficulty() {
+  clearGameTimer();
+  resetGame();
 }
 
-function changeMode(){
-  clearInterval(timer);
-
-  sound("click");
-
-  const settings=
-    getDifficultySettings();
-
-  score=0;
-  streak=0;
-  round=1;
-  lives=settings.lives;
-
-  startRound();
+function changeMode() {
+  clearGameTimer();
+  resetGame();
 }
 
-function getResultMessage(points){
-  if(points===1000){
-    return"Perfeito! Você acertou exatamente.";
+function getResultMessage(points) {
+  if (points === 1000) {
+    return "Perfeito! Você acertou exatamente.";
   }
 
-  if(points>=900){
-    return"Quase perfeito! Excelente percepção.";
+  if (points >= 900) {
+    return "Quase perfeito! Excelente percepção.";
   }
 
-  if(points>=800){
-    return"Excelente! Você chegou muito perto.";
+  if (points >= 800) {
+    return "Excelente! Você chegou muito perto.";
   }
 
-  if(points>=650){
-    return"Muito bom! Continue assim.";
+  if (points >= 650) {
+    return "Muito bom! Continue assim.";
   }
 
-  if(points>=500){
-    return"Bom trabalho! Ainda dá para melhorar.";
+  if (points >= 500) {
+    return "Bom trabalho! Ainda dá para melhorar.";
   }
 
-  if(points>=300){
-    return"A cor ficou um pouco distante.";
+  if (points >= 300) {
+    return "A cor ficou um pouco distante.";
   }
 
-  return"Você ficou bem longe da resposta.";
+  return "Você ficou bem longe da resposta.";
 }
 
-function updateSoundButton(){
+function updateSoundButton() {
   ui.setSoundButton(
-    soundEnabled()
+    isSoundEnabled()
   );
 }
 
-function toggleSound(){
-  const enabled=
-    soundEnabled();
+function toggleSound() {
+  const enabled = isSoundEnabled();
 
-  localStorage.setItem(
-    "colorGameSound",
-    enabled?"off":"on"
-  );
-
-  if(!enabled){
-    sound("success");
-  }
+  setSoundEnabled(!enabled);
 
   updateSoundButton();
+
+  if (!enabled) {
+    sound("success");
+  }
 }
 
 ui.hue.addEventListener(
@@ -585,7 +615,7 @@ ui.hue.addEventListener(
 
 ui.saturation.addEventListener(
   "input",
-  ()=>{
+  () => {
     ui.updateValues();
     updatePreview();
   }
@@ -593,7 +623,7 @@ ui.saturation.addEventListener(
 
 ui.lightness.addEventListener(
   "input",
-  ()=>{
+  () => {
     ui.updateValues();
     updatePreview();
   }
@@ -626,11 +656,11 @@ ui.soundButton.addEventListener(
 
 ui.themeButton.addEventListener(
   "click",
-  ()=>{
-    const theme=toggleTheme();
+  () => {
+    const theme = toggleTheme();
 
     ui.setThemeButton(
-      theme==="dark"
+      theme === "dark"
     );
 
     sound("click");
@@ -639,38 +669,34 @@ ui.themeButton.addEventListener(
 
 ui.speedOptions
   .querySelectorAll(".color-option")
-  .forEach(button=>{
+  .forEach(button => {
     button.addEventListener(
       "click",
-      ()=>{
-        checkSpeed(
-          button.dataset.index
-        );
-      }
+      () => checkSpeed(
+        button.dataset.index
+      )
     );
   });
 
 ui.sequenceOptions
   .querySelectorAll(".sequence-color")
-  .forEach(button=>{
+  .forEach(button => {
     button.addEventListener(
       "click",
-      ()=>{
-        selectSequenceColor(
-          button.dataset.index
-        );
-      }
+      () => selectSequenceColor(
+        button.dataset.index
+      )
     );
   });
 
 applySavedTheme();
 
-ui.setThemeButton(
-  document.documentElement.dataset.theme==="dark"
-);
-
 updateSoundButton();
-
 ui.updateValues();
 
-startRound();
+ui.updateRecords(
+  stats.highScore,
+  stats.bestStreak
+);
+
+startNewGame();

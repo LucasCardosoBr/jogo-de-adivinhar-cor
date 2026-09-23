@@ -1,19 +1,53 @@
-const STORAGE_KEY = "colorGuessStats";
-const THEME_KEY = "colorGuessTheme";
+const KEYS = {
+  sound: "colorGameSound",
+  theme: "colorGameTheme",
+  stats: "colorGameStats"
+};
+
+function get(key, fallback = null) {
+  try {
+    return localStorage.getItem(key) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function set(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Armazenamento indisponível.
+  }
+}
+
+export function isSoundEnabled() {
+  return get(KEYS.sound, "on") !== "off";
+}
+
+export function setSoundEnabled(enabled) {
+  set(KEYS.sound, enabled ? "on" : "off");
+}
+
+export function getTheme() {
+  return get(KEYS.theme, "light");
+}
+
+export function setTheme(theme) {
+  set(KEYS.theme, theme);
+}
 
 const defaultStats = {
   highScore: 0,
   bestStreak: 0,
-  totalGames: 0,
-  correctAnswers: 0,
-  totalAnswers: 0,
-  soundEnabled: true
+  games: 0,
+  correct: 0,
+  attempts: 0
 };
 
-export function loadStats() {
+export function getStats() {
   try {
     const saved = JSON.parse(
-      localStorage.getItem(STORAGE_KEY)
+      get(KEYS.stats, "{}")
     );
 
     return {
@@ -26,26 +60,34 @@ export function loadStats() {
 }
 
 export function saveStats(stats) {
-  localStorage.setItem(
-    STORAGE_KEY,
+  set(
+    KEYS.stats,
     JSON.stringify(stats)
   );
 }
 
+export function updateStats(data) {
+  const stats = getStats();
+
+  const updated = {
+    ...stats,
+    ...data
+  };
+
+  saveStats(updated);
+
+  return updated;
+}
+
 export function resetStats() {
-  localStorage.removeItem(STORAGE_KEY);
+  saveStats({
+    ...defaultStats
+  });
 }
 
-export function loadTheme() {
-  return (
-    localStorage.getItem(THEME_KEY) ||
-    "light"
-  );
-}
-
-export function saveTheme(theme) {
-  localStorage.setItem(
-    THEME_KEY,
-    theme
-  );
+export function getGameSettings() {
+  return {
+    sound: isSoundEnabled(),
+    theme: getTheme()
+  };
 }
