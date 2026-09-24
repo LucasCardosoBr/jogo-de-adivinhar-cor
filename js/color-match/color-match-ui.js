@@ -1,5 +1,11 @@
+import { formatDate } from "./statistics.js";
+
 export class ColorMatchUI {
   constructor() {
+    /* ================================
+       CONFIGURAÇÕES
+    ================================= */
+
     this.gameMode =
       document.getElementById("gameMode");
 
@@ -11,6 +17,11 @@ export class ColorMatchUI {
 
     this.themeButton =
       document.getElementById("themeButton");
+
+
+    /* ================================
+       ESTATÍSTICAS
+    ================================= */
 
     this.score =
       document.getElementById("score");
@@ -33,11 +44,24 @@ export class ColorMatchUI {
     this.timer =
       document.getElementById("timer");
 
+
+    /* ================================
+       ALVO
+    ================================= */
+
+    this.targetArea =
+      document.querySelector(".target-area");
+
     this.colorTarget =
       document.getElementById("colorTarget");
 
     this.targetMessage =
       document.getElementById("targetMessage");
+
+
+    /* ================================
+       CONTROLES
+    ================================= */
 
     this.matchControls =
       document.getElementById("matchControls");
@@ -47,6 +71,11 @@ export class ColorMatchUI {
 
     this.sequenceControls =
       document.getElementById("sequenceControls");
+
+
+    /* ================================
+       SLIDERS
+    ================================= */
 
     this.colorPreview =
       document.getElementById("colorPreview");
@@ -64,127 +93,131 @@ export class ColorMatchUI {
       document.getElementById("hueValue");
 
     this.saturationValue =
-      document.getElementById(
-        "saturationValue"
-      );
+      document.getElementById("saturationValue");
 
     this.lightnessValue =
-      document.getElementById(
-        "lightnessValue"
-      );
+      document.getElementById("lightnessValue");
 
     this.checkButton =
       document.getElementById("checkButton");
 
+
+    /* ================================
+       MODO RELÂMPAGO
+    ================================= */
+
     this.speedOptions =
       document.getElementById("speedOptions");
 
+    this.speedPreview =
+      document.getElementById("speedPreview");
+
+
+    /* ================================
+       MODO SEQUÊNCIA
+    ================================= */
+
     this.sequenceOptions =
-      document.getElementById(
-        "sequenceOptions"
-      );
+      document.getElementById("sequenceOptions");
 
     this.sequencePreview =
-      document.getElementById(
-        "sequencePreview"
-      );
+      document.getElementById("sequencePreview");
 
     this.sequenceProgress =
-      document.getElementById(
-        "sequenceProgress"
-      );
+      document.getElementById("sequenceProgress");
 
     this.sequenceMessage =
-      document.getElementById(
-        "sequenceMessage"
-      );
+      document.getElementById("sequenceMessage");
+
+
+    /* ================================
+       RESULTADO
+    ================================= */
 
     this.result =
       document.getElementById("result");
 
     this.resultTitle =
-      document.getElementById(
-        "resultTitle"
-      );
+      document.getElementById("resultTitle");
 
     this.originalColor =
-      document.getElementById(
-        "originalColor"
-      );
+      document.getElementById("originalColor");
 
     this.guessedColor =
-      document.getElementById(
-        "guessedColor"
-      );
+      document.getElementById("guessedColor");
 
     this.scoreResult =
-      document.getElementById(
-        "scoreResult"
-      );
+      document.getElementById("scoreResult");
 
     this.resultMessage =
-      document.getElementById(
-        "resultMessage"
-      );
+      document.getElementById("resultMessage");
 
     this.nextButton =
       document.getElementById("nextButton");
 
     this.restartButton =
-      document.getElementById(
-        "restartButton"
-      );
+      document.getElementById("restartButton");
+
+
+    /* ================================
+       CONQUISTAS
+    ================================= */
 
     this.achievements =
-      document.getElementById(
-        "achievements"
-      );
+      document.getElementById("achievements");
 
     this.achievementList =
-      document.getElementById(
-        "achievementList"
-      );
+      document.getElementById("achievementList");
 
     this.achievementNotification =
       document.getElementById(
         "achievementNotification"
       );
-    
+
+
+    /* ================================
+       PROGRESSÃO
+    ================================= */
+
     this.progression =
-      document.querySelector(
-        "#progression"
-      );
+      document.getElementById("progression");
 
     this.playerLevel =
-      document.querySelector(
-        "#playerLevel"
-      );
+      document.getElementById("playerLevel");
 
     this.playerLevelName =
-      document.querySelector(
-        "#playerLevelName"
-      );
+      document.getElementById("playerLevelName");
 
     this.playerXP =
-      document.querySelector(
-        "#playerXP"
-      );
+      document.getElementById("playerXP");
 
     this.playerNextXP =
-      document.querySelector(
-        "#playerNextXP"
-      );
+      document.getElementById("playerNextXP");
 
     this.progressBar =
-      document.querySelector(
-        "#progressBar"
-      );
+      document.getElementById("progressBar");
 
     this.xpNotification =
-      document.querySelector(
-        "#xpNotification"
-    );
+      document.getElementById("xpNotification");
+
+
+    /* ================================
+       ESTATÍSTICAS AVANÇADAS
+    ================================= */
+
+    this.modeStatistics =
+      document.getElementById("modeStatistics");
+
+    this.gameHistory =
+      document.getElementById("gameHistory");
+
+    this.achievementNotificationTimer =
+      null;
+
+    this.xpNotificationTimer =
+      null;
   }
+
 
   /* ================================
      CONFIGURAÇÕES
@@ -193,7 +226,6 @@ export class ColorMatchUI {
   getMode() {
     return this.gameMode.value;
   }
-
 
   getDifficulty() {
     return this.difficulty.value;
@@ -229,7 +261,6 @@ export class ColorMatchUI {
     );
   }
 
-
   updateRecords(
     highScore,
     bestStreak
@@ -240,7 +271,6 @@ export class ColorMatchUI {
     this.bestStreak.textContent =
       bestStreak;
   }
-
 
   animateValue(element) {
     if (!element) {
@@ -288,28 +318,28 @@ export class ColorMatchUI {
   ================================= */
 
   showTarget(
-    color,
-    message
-  ) {
-    this.setTargetAreaVisible(true);
+  color,
+  message
+) {
+  this.setTargetAreaVisible(true);
 
-    this.colorTarget.style.background =
-      color;
+  this.colorTarget.style.background =
+    color;
 
-    this.targetMessage.textContent =
-      message;
+  this.targetMessage.textContent =
+    message;
 
-    this.colorTarget.classList.remove(
-      "target-reveal"
-    );
+  this.colorTarget.classList.remove(
+    "hidden-color",
+    "target-reveal"
+  );
 
-    void this.colorTarget.offsetWidth;
+  void this.colorTarget.offsetWidth;
 
-    this.colorTarget.classList.add(
-      "target-reveal"
-    );
-  }
-
+  this.colorTarget.classList.add(
+    "target-reveal"
+  );
+}
 
   hideTarget(message) {
     this.colorTarget.classList.add(
@@ -320,19 +350,11 @@ export class ColorMatchUI {
       message;
   }
 
-
   setTargetAreaVisible(visible) {
-    const area =
-      document.querySelector(
-        ".target-area"
-      );
-
-    if (area) {
-      area.classList.toggle(
-        "hidden",
-        !visible
-      );
-    }
+    this.targetArea?.classList.toggle(
+      "hidden",
+      !visible
+    );
   }
 
 
@@ -354,7 +376,6 @@ export class ColorMatchUI {
     );
   }
 
-
   showModeControls(mode) {
     this.hideControls();
 
@@ -369,14 +390,12 @@ export class ColorMatchUI {
     );
   }
 
-
   setCheckEnabled(enabled) {
     if (this.checkButton) {
       this.checkButton.disabled =
         !enabled;
     }
   }
-
 
   setNextEnabled(enabled) {
     if (this.nextButton) {
@@ -398,7 +417,6 @@ export class ColorMatchUI {
     };
   }
 
-
   resetSliders() {
     this.hue.value = 180;
     this.saturation.value = 65;
@@ -406,7 +424,6 @@ export class ColorMatchUI {
 
     this.updateValues();
   }
-
 
   updateValues() {
     this.hueValue.textContent =
@@ -418,7 +435,6 @@ export class ColorMatchUI {
     this.lightnessValue.textContent =
       `${this.lightness.value}%`;
   }
-
 
   updatePreview(color) {
     if (!this.colorPreview) {
@@ -445,43 +461,27 @@ export class ColorMatchUI {
   ================================= */
 
   showSpeedPreview() {
-    const preview =
-      document.getElementById(
-        "speedPreview"
-      );
-
-    preview?.classList.remove(
+    this.speedPreview?.classList.remove(
       "hidden"
     );
   }
-
 
   hideSpeedPreview() {
-    const preview =
-      document.getElementById(
-        "speedPreview"
-      );
-
-    preview?.classList.add(
+    this.speedPreview?.classList.add(
       "hidden"
     );
   }
 
-
   setSpeedOptions(colors) {
-    const buttons = [
-      ...this.speedOptions
-        .querySelectorAll(
-          ".color-option"
-        )
-    ];
+    const buttons =
+      this.speedOptions?.querySelectorAll(
+        ".color-option"
+      ) || [];
 
     buttons.forEach(
       (button, index) => {
         button.disabled = false;
-
-        button.dataset.index =
-          index;
+        button.dataset.index = index;
 
         button.classList.remove(
           "selected",
@@ -498,7 +498,6 @@ export class ColorMatchUI {
       }
     );
   }
-
 
   disableSpeedOptions() {
     this.speedOptions
@@ -512,23 +511,19 @@ export class ColorMatchUI {
 
 
   /* ================================
-     SEQUÊNCIA
+     MODO SEQUÊNCIA
   ================================= */
 
   setSequenceOptions(colors) {
-    const buttons = [
-      ...this.sequenceOptions
-        .querySelectorAll(
-          ".sequence-color"
-        )
-    ];
+    const buttons =
+      this.sequenceOptions?.querySelectorAll(
+        ".sequence-color"
+      ) || [];
 
     buttons.forEach(
       (button, index) => {
         button.disabled = false;
-
-        button.dataset.index =
-          index;
+        button.dataset.index = index;
 
         button.classList.remove(
           "selected",
@@ -546,7 +541,6 @@ export class ColorMatchUI {
     );
   }
 
-
   disableSequenceOptions() {
     this.sequenceOptions
       ?.querySelectorAll(
@@ -556,7 +550,6 @@ export class ColorMatchUI {
         button.disabled = true;
       });
   }
-
 
   setSequencePreview(colors) {
     if (!this.sequencePreview) {
@@ -572,8 +565,7 @@ export class ColorMatchUI {
       item.className =
         "sequence-preview-color";
 
-      item.style.background =
-        color;
+      item.style.background = color;
 
       this.sequencePreview.appendChild(
         item
@@ -581,14 +573,11 @@ export class ColorMatchUI {
     });
   }
 
-
   clearSequencePreview() {
     if (this.sequencePreview) {
-      this.sequencePreview.innerHTML =
-        "";
+      this.sequencePreview.innerHTML = "";
     }
   }
-
 
   setSequenceProgress(
     current,
@@ -605,14 +594,12 @@ export class ColorMatchUI {
       "progress-pop"
     );
 
-    void this.sequenceProgress
-      .offsetWidth;
+    void this.sequenceProgress.offsetWidth;
 
     this.sequenceProgress.classList.add(
       "progress-pop"
     );
   }
-
 
   setSequenceMessage(message) {
     if (this.sequenceMessage) {
@@ -674,7 +661,6 @@ export class ColorMatchUI {
     this.animateResult();
   }
 
-
   showEndGame(
     score,
     round
@@ -705,13 +691,11 @@ export class ColorMatchUI {
     this.animateResult();
   }
 
-
   hideResult() {
     this.result?.classList.add(
       "hidden"
     );
   }
-
 
   animateResult() {
     if (!this.result) {
@@ -742,8 +726,7 @@ export class ColorMatchUI {
       return;
     }
 
-    this.achievementList.innerHTML =
-      "";
+    this.achievementList.innerHTML = "";
 
     achievements.forEach(
       achievement => {
@@ -788,7 +771,6 @@ export class ColorMatchUI {
       }
     );
   }
-
 
   showAchievementNotification(
     achievement
@@ -841,11 +823,13 @@ export class ColorMatchUI {
      UTILITÁRIOS
   ================================= */
 
-  setColor(element, color) {
+  setColor(
+    element,
+    color
+  ) {
     element.style.background =
       color;
   }
-
 
   setSoundButton(enabled) {
     if (!this.soundButton) {
@@ -853,9 +837,7 @@ export class ColorMatchUI {
     }
 
     this.soundButton.textContent =
-      enabled
-        ? "🔊"
-        : "🔇";
+      enabled ? "🔊" : "🔇";
 
     this.soundButton.setAttribute(
       "aria-label",
@@ -865,16 +847,13 @@ export class ColorMatchUI {
     );
   }
 
-
   setThemeButton(isDark) {
     if (!this.themeButton) {
       return;
     }
 
     this.themeButton.textContent =
-      isDark
-        ? "☀️"
-        : "🌙";
+      isDark ? "☀️" : "🌙";
 
     this.themeButton.setAttribute(
       "aria-label",
@@ -884,165 +863,168 @@ export class ColorMatchUI {
     );
   }
 
+
+  /* ================================
+     PROGRESSÃO
+  ================================= */
+
   updateProgression(data) {
-  if (!data) {
-    return;
-  }
+    if (!data) {
+      return;
+    }
 
-  if (this.playerLevel) {
-    this.playerLevel.textContent =
-      data.currentLevel;
-  }
+    if (this.playerLevel) {
+      this.playerLevel.textContent =
+        data.currentLevel;
+    }
 
-  if (this.playerLevelName) {
-    this.playerLevelName.textContent =
-      data.currentName;
-  }
+    if (this.playerLevelName) {
+      this.playerLevelName.textContent =
+        data.currentName;
+    }
 
-  if (this.playerXP) {
-    this.playerXP.textContent =
-      data.currentXP;
-  }
+    if (this.playerXP) {
+      this.playerXP.textContent =
+        data.currentXP;
+    }
 
-  if (this.playerNextXP) {
-    this.playerNextXP.textContent =
-      data.maxLevel
-        ? "Nível máximo"
-        : data.nextXP;
-  }
+    if (this.playerNextXP) {
+      this.playerNextXP.textContent =
+        data.maxLevel
+          ? "Nível máximo"
+          : data.nextXP;
+    }
 
-  if (this.progressBar) {
-    this.progressBar.style.width =
-      `${data.progress}%`;
+    if (this.progressBar) {
+      this.progressBar.style.width =
+        `${data.progress}%`;
 
-    this.progressBar.setAttribute(
-      "aria-valuenow",
-      data.progress
-    );
-  }
-}
-
-
-showXPNotification(amount) {
-  if (
-    !this.xpNotification ||
-    amount <= 0
-  ) {
-    return;
-  }
-
-  this.xpNotification.textContent =
-    `+${amount} XP`;
-
-  this.xpNotification.classList.remove(
-    "hidden"
-  );
-
-  this.xpNotification.classList.remove(
-    "xp-show"
-  );
-
-  void this.xpNotification.offsetWidth;
-
-  this.xpNotification.classList.add(
-    "xp-show"
-  );
-
-  clearTimeout(
-    this.xpNotificationTimer
-  );
-
-  this.xpNotificationTimer =
-    setTimeout(() => {
-      this.xpNotification.classList.remove(
-        "xp-show"
+      this.progressBar.setAttribute(
+        "aria-valuenow",
+        data.progress
       );
-
-      this.xpNotification.classList.add(
-        "hidden"
-      );
-    }, 1600);
-}
-
-
-showLevelUp(level) {
-  if (
-    !this.progression ||
-    !level
-  ) {
-    return;
+    }
   }
 
-  const notification =
-    document.createElement(
-      "div"
+  showXPNotification(amount) {
+    if (
+      !this.xpNotification ||
+      amount <= 0
+    ) {
+      return;
+    }
+
+    this.xpNotification.textContent =
+      `+${amount} XP`;
+
+    this.xpNotification.classList.remove(
+      "hidden",
+      "xp-show"
     );
 
-  notification.className =
-    "level-up-notification";
+    void this.xpNotification.offsetWidth;
 
-  notification.innerHTML = `
-    <span class="level-up-icon">
-      🎉
-    </span>
+    this.xpNotification.classList.add(
+      "xp-show"
+    );
 
-    <div>
-      <strong>Novo nível!</strong>
-      <span>
-        Nível ${level.level}
-        — ${level.name}
+    clearTimeout(
+      this.xpNotificationTimer
+    );
+
+    this.xpNotificationTimer =
+      setTimeout(() => {
+        this.xpNotification.classList.remove(
+          "xp-show"
+        );
+
+        this.xpNotification.classList.add(
+          "hidden"
+        );
+      }, 1600);
+  }
+
+  showLevelUp(level) {
+    if (
+      !this.progression ||
+      !level
+    ) {
+      return;
+    }
+
+    const notification =
+      document.createElement("div");
+
+    notification.className =
+      "level-up-notification";
+
+    notification.innerHTML = `
+      <span class="level-up-icon">
+        🎉
       </span>
-    </div>
-  `;
 
-  document.body.appendChild(
-    notification
-  );
+      <div>
+        <strong>Novo nível!</strong>
 
-  requestAnimationFrame(() => {
-    notification.classList.add(
-      "level-up-show"
+        <span>
+          Nível ${level.level}
+          — ${level.name}
+        </span>
+      </div>
+    `;
+
+    document.body.appendChild(
+      notification
     );
-  });
 
-  setTimeout(() => {
-    notification.classList.remove(
-      "level-up-show"
-    );
+    requestAnimationFrame(() => {
+      notification.classList.add(
+        "level-up-show"
+      );
+    });
 
     setTimeout(() => {
-      notification.remove();
-    }, 300);
-  }, 3000);
-}
+      notification.classList.remove(
+        "level-up-show"
+      );
 
-updateAdvancedStatistics(data) {
-  if (!data) {
-    return;
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 3000);
   }
 
-  const fields = {
-    accuracyStat:
-      `${data.accuracy}%`,
 
-    averageScoreStat:
-      data.averageScore,
+  /* ================================
+     ESTATÍSTICAS AVANÇADAS
+  ================================= */
 
-    highScoreStat:
-      data.highScore,
+  updateAdvancedStatistics(data) {
+    if (!data) {
+      return;
+    }
 
-    bestStreakStat:
-      data.bestStreak,
+    const fields = {
+      accuracyStat:
+        `${data.accuracy}%`,
 
-    gamesStat:
-      data.games,
+      averageScoreStat:
+        data.averageScore,
 
-    correctStat:
-      data.correct
-  };
+      highScoreStat:
+        data.highScore,
 
-  Object.entries(fields)
-    .forEach(
+      bestStreakStat:
+        data.bestStreak,
+
+      gamesStat:
+        data.games,
+
+      correctStat:
+        data.correct
+    };
+
+    Object.entries(fields).forEach(
       ([id, value]) => {
         const element =
           document.getElementById(id);
@@ -1053,168 +1035,150 @@ updateAdvancedStatistics(data) {
         }
       }
     );
-}
-
-
-renderModeStatistics(
-  modeStats
-) {
-  const container =
-    document.querySelector(
-      "#modeStatistics"
-    );
-
-  if (!container) {
-    return;
   }
 
-  const modes = [
-    {
-      id: "match",
-      name: "Combinação",
-      icon: "🎨"
-    },
-    {
-      id: "speed",
-      name: "Relâmpago",
-      icon: "⚡"
-    },
-    {
-      id: "sequence",
-      name: "Sequência",
-      icon: "🧠"
+  renderModeStatistics(modeStats) {
+    if (!this.modeStatistics) {
+      return;
     }
-  ];
 
-  container.innerHTML =
-    modes.map(mode => {
-      const data =
-        modeStats[mode.id] || {
-          games: 0,
-          averageScore: 0,
-          bestScore: 0
-        };
+    const modes = [
+      {
+        id: "match",
+        name: "Combinação",
+        icon: "🎨"
+      },
+      {
+        id: "speed",
+        name: "Relâmpago",
+        icon: "⚡"
+      },
+      {
+        id: "sequence",
+        name: "Sequência",
+        icon: "🧠"
+      }
+    ];
 
-      return `
-        <article class="performance-card">
+    this.modeStatistics.innerHTML =
+      modes
+        .map(mode => {
+          const data =
+            modeStats[mode.id] || {
+              games: 0,
+              averageScore: 0,
+              bestScore: 0
+            };
 
-          <div class="performance-card-header">
-            <strong>
-              ${mode.icon}
-              ${mode.name}
-            </strong>
+          return `
+            <article class="performance-card">
 
-            <span>
-              ${data.games} partidas
-            </span>
-          </div>
+              <div class="performance-card-header">
+                <strong>
+                  ${mode.icon}
+                  ${mode.name}
+                </strong>
 
-          <div class="performance-values">
+                <span>
+                  ${data.games} partidas
+                </span>
+              </div>
 
-            <div class="performance-value">
-              <span>
-                Média
-              </span>
+              <div class="performance-values">
 
-              <strong>
-                ${data.averageScore}
-              </strong>
-            </div>
+                <div class="performance-value">
+                  <span>Média</span>
+                  <strong>
+                    ${data.averageScore}
+                  </strong>
+                </div>
 
-            <div class="performance-value">
-              <span>
-                Melhor
-              </span>
+                <div class="performance-value">
+                  <span>Melhor</span>
+                  <strong>
+                    ${data.bestScore}
+                  </strong>
+                </div>
 
-              <strong>
-                ${data.bestScore}
-              </strong>
-            </div>
+              </div>
 
-          </div>
-
-        </article>
-      `;
-    }).join("");
-}
-
-
-renderHistory(history) {
-  const container =
-    document.querySelector(
-      "#gameHistory"
-    );
-
-  if (!container) {
-    return;
+            </article>
+          `;
+        })
+        .join("");
   }
 
-  if (!history.length) {
-    container.innerHTML = `
-      <div class="history-empty">
-        Nenhuma partida registrada ainda.
-      </div>
-    `;
+  renderHistory(history) {
+    if (!this.gameHistory) {
+      return;
+    }
 
-    return;
-  }
-
-  const modeNames = {
-    match: "Combinação",
-    speed: "Relâmpago",
-    sequence: "Sequência"
-  };
-
-  const difficultyNames = {
-    easy: "Fácil",
-    medium: "Médio",
-    hard: "Difícil"
-  };
-
-  container.innerHTML =
-    history.map(game => {
-      const success =
-        game.score > 0;
-
-      return `
-        <article class="history-item">
-
-          <div
-            class="history-result
-            ${success
-              ? "success"
-              : "failure"}"
-          >
-            ${success ? "✓" : "×"}
-          </div>
-
-          <div class="history-info">
-
-            <strong>
-              ${modeNames[game.mode]
-                || game.mode}
-              ·
-              ${difficultyNames[
-                game.difficulty
-              ] || game.difficulty}
-            </strong>
-
-            <span>
-              ${formatDate(
-                game.date
-              )}
-              ·
-              ${game.round} rodadas
-            </span>
-
-          </div>
-
-          <strong class="history-score">
-            ${game.score} pts
-          </strong>
-
-        </article>
+    if (!history.length) {
+      this.gameHistory.innerHTML = `
+        <div class="history-empty">
+          Nenhuma partida registrada ainda.
+        </div>
       `;
-    }).join("");
+
+      return;
+    }
+
+    const modeNames = {
+      match: "Combinação",
+      speed: "Relâmpago",
+      sequence: "Sequência"
+    };
+
+    const difficultyNames = {
+      easy: "Fácil",
+      medium: "Médio",
+      hard: "Difícil"
+    };
+
+    this.gameHistory.innerHTML =
+      history
+        .map(game => {
+          const success =
+            game.score > 0;
+
+          return `
+            <article class="history-item">
+
+              <div
+                class="history-result
+                ${success
+                  ? "success"
+                  : "failure"}"
+              >
+                ${success ? "✓" : "×"}
+              </div>
+
+              <div class="history-info">
+
+                <strong>
+                  ${modeNames[game.mode]
+                    || game.mode}
+                  ·
+                  ${difficultyNames[
+                    game.difficulty
+                  ] || game.difficulty}
+                </strong>
+
+                <span>
+                  ${formatDate(game.date)}
+                  ·
+                  ${game.round} rodadas
+                </span>
+
+              </div>
+
+              <strong class="history-score">
+                ${game.score} pts
+              </strong>
+
+            </article>
+          `;
+        })
+        .join("");
   }
 }

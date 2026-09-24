@@ -1,31 +1,23 @@
-const KEYS = {
+const STORAGE_KEYS = {
+  history: "colorGameHistory",
   sound: "colorGameSound",
-  theme: "colorGameTheme",
   stats: "colorGameStats",
-  achievements: "colorGameAchievements",
   progression: "colorGameProgression",
-  history: "colorGameHistory"
+  achievements: "colorGameAchievements"
 };
 
-const defaultStats = {
-  highScore: 0,
-  bestStreak: 0,
-  games: 0,
-  correct: 0,
-  attempts: 0,
-  totalScore: 0
-};
 
-const defaultProgression = {
-  xp: 0
-};
+/* ================================
+   STORAGE
+================================ */
 
-function get(key, fallback = null) {
+function get(key, fallback) {
   try {
-    return (
-      localStorage.getItem(key) ??
-      fallback
-    );
+    const value = localStorage.getItem(key);
+
+    return value === null
+      ? fallback
+      : JSON.parse(value);
   } catch {
     return fallback;
   }
@@ -35,167 +27,109 @@ function set(key, value) {
   try {
     localStorage.setItem(
       key,
-      value
+      JSON.stringify(value)
     );
+
+    return value;
   } catch {
-    // Armazenamento indisponível.
+    return value;
   }
 }
+
+
+/* ================================
+   HISTÓRICO
+================================ */
+
+export function getHistory() {
+  return get(
+    STORAGE_KEYS.history,
+    []
+  );
+}
+
+export function saveHistory(history) {
+  return set(
+    STORAGE_KEYS.history,
+    history
+  );
+}
+
+export function addHistoryEntry(entry) {
+  const history = [
+    entry,
+    ...getHistory()
+  ].slice(0, 10);
+
+  return saveHistory(history);
+}
+
+export function resetHistory() {
+  return saveHistory([]);
+}
+
 
 /* ================================
    SOM
 ================================ */
 
 export function isSoundEnabled() {
-  return (
-    get(
-      KEYS.sound,
-      "on"
-    ) !== "off"
+  return get(
+    STORAGE_KEYS.sound,
+    true
   );
 }
-
 
 export function setSoundEnabled(enabled) {
-  set(
-    KEYS.sound,
-    enabled ? "on" : "off"
+  return set(
+    STORAGE_KEYS.sound,
+    enabled
   );
 }
 
-/* ================================
-   TEMA
-================================ */
-
-export function getTheme() {
-  return get(
-    KEYS.theme,
-    "light"
-  );
-}
-
-export function setTheme(theme) {
-  set(
-    KEYS.theme,
-    theme
-  );
-}
 
 /* ================================
    ESTATÍSTICAS
 ================================ */
 
+const DEFAULT_STATS = {
+  highScore: 0,
+  bestStreak: 0,
+  games: 0,
+  correct: 0,
+  attempts: 0,
+  totalScore: 0
+};
+
 export function getStats() {
-  try {
-    const saved =
-      JSON.parse(
-        get(
-          KEYS.stats,
-          "{}"
-        )
-      );
-
-    return {
-      ...defaultStats,
-      ...saved
-    };
-  } catch {
-    return {
-      ...defaultStats
-    };
-  }
-}
-
-export function saveStats(stats) {
-  set(
-    KEYS.stats,
-    JSON.stringify(stats)
-  );
-}
-
-export function updateStats(data) {
-  const updated = {
-    ...getStats(),
-    ...data
+  return {
+    ...DEFAULT_STATS,
+    ...get(
+      STORAGE_KEYS.stats,
+      {}
+    )
   };
+}
 
-  saveStats(updated);
+export function updateStats(stats) {
+  const current = getStats();
 
-  return updated;
+  return set(
+    STORAGE_KEYS.stats,
+    {
+      ...current,
+      ...stats
+    }
+  );
 }
 
 export function resetStats() {
-  saveStats({
-    ...defaultStats
-  });
-}
-
-
-/* ================================
-   CONQUISTAS
-================================ */
-
-export function getAchievements() {
-  try {
-    const saved =
-      JSON.parse(
-        get(
-          KEYS.achievements,
-          "[]"
-        )
-      );
-
-    return Array.isArray(saved)
-      ? saved
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-
-export function saveAchievements(
-  achievements
-) {
-  set(
-    KEYS.achievements,
-    JSON.stringify(
-      achievements
-    )
+  return set(
+    STORAGE_KEYS.stats,
+    {
+      ...DEFAULT_STATS
+    }
   );
-}
-
-
-export function unlockAchievement(id) {
-  const achievements =
-    getAchievements();
-
-  if (
-    achievements.includes(id)
-  ) {
-    return false;
-  }
-
-  achievements.push(id);
-
-  saveAchievements(
-    achievements
-  );
-
-  return true;
-}
-
-
-export function isAchievementUnlocked(
-  id
-) {
-  return getAchievements()
-    .includes(id);
-}
-
-
-export function resetAchievements() {
-  saveAchievements([]);
 }
 
 
@@ -203,108 +137,81 @@ export function resetAchievements() {
    PROGRESSÃO
 ================================ */
 
+const DEFAULT_PROGRESSION = {
+  xp: 0
+};
+
 export function getProgression() {
-  try {
-    const saved =
-      JSON.parse(
-        get(
-          KEYS.progression,
-          "{}"
-        )
-      );
-
-    return {
-      ...defaultProgression,
-      ...saved
-    };
-  } catch {
-    return {
-      ...defaultProgression
-    };
-  }
-}
-
-
-export function saveProgression(
-  progression
-) {
-  set(
-    KEYS.progression,
-    JSON.stringify(
-      progression
+  return {
+    ...DEFAULT_PROGRESSION,
+    ...get(
+      STORAGE_KEYS.progression,
+      {}
     )
-  );
+  };
 }
-
 
 export function updateProgression(
-  data
+  progression
 ) {
-  const updated = {
-    ...getProgression(),
-    ...data
-  };
+  const current =
+    getProgression();
 
-  saveProgression(
-    updated
+  return set(
+    STORAGE_KEYS.progression,
+    {
+      ...current,
+      ...progression
+    }
   );
-
-  return updated;
 }
-
 
 export function resetProgression() {
-  saveProgression({
-    ...defaultProgression
-  });
-}
-
-/* ================================
-   HISTÓRICO
-================================ */
-
-export function getHistory() {
-  try {
-    const saved =
-      JSON.parse(
-        get(
-          KEYS.history,
-          "[]"
-        )
-      );
-
-    return Array.isArray(saved)
-      ? saved
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-
-export function saveHistory(history) {
-  set(
-    KEYS.history,
-    JSON.stringify(history)
+  return set(
+    STORAGE_KEYS.progression,
+    {
+      ...DEFAULT_PROGRESSION
+    }
   );
 }
 
 
-export function addHistoryEntry(entry) {
-  const history =
-    getHistory();
+/* ================================
+   CONQUISTAS
+================================ */
 
-  history.unshift(entry);
-
-  const limited =
-    history.slice(0, 10);
-
-  saveHistory(limited);
-
-  return limited;
+export function getUnlockedAchievements() {
+  return get(
+    STORAGE_KEYS.achievements,
+    []
+  );
 }
 
+export function saveUnlockedAchievements(
+  achievements
+) {
+  return set(
+    STORAGE_KEYS.achievements,
+    achievements
+  );
+}
 
-export function resetHistory() {
-  saveHistory([]);
+export function unlockAchievement(id) {
+  const unlocked =
+    getUnlockedAchievements();
+
+  if (!unlocked.includes(id)) {
+    unlocked.push(id);
+    saveUnlockedAchievements(
+      unlocked
+    );
+  }
+
+  return unlocked;
+}
+
+export function resetAchievements() {
+  return saveUnlockedAchievements(
+    []
+  );
 }

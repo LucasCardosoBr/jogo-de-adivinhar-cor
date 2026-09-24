@@ -1,3 +1,35 @@
+function getFilteredStats(history, filter) {
+  const games = history.filter(filter);
+
+  if (!games.length) {
+    return {
+      games: 0,
+      averageScore: 0,
+      bestScore: 0
+    };
+  }
+
+  const total = games.reduce(
+    (sum, game) => sum + game.score,
+    0
+  );
+
+  return {
+    games: games.length,
+    averageScore: Math.round(
+      total / games.length
+    ),
+    bestScore: Math.max(
+      ...games.map(game => game.score)
+    )
+  };
+}
+
+
+/* ================================
+   PRECISÃO
+================================ */
+
 export function calculateAccuracy(
   correct,
   attempts
@@ -11,6 +43,10 @@ export function calculateAccuracy(
   );
 }
 
+
+/* ================================
+   MÉDIA DE PONTOS
+================================ */
 
 export function calculateAverageScore(
   totalScore,
@@ -26,101 +62,47 @@ export function calculateAverageScore(
 }
 
 
+/* ================================
+   ESTATÍSTICAS POR MODO
+================================ */
+
 export function getModeStats(
   history,
   mode
 ) {
-  const games =
-    history.filter(
-      game => game.mode === mode
-    );
-
-  if (!games.length) {
-    return {
-      games: 0,
-      averageScore: 0,
-      bestScore: 0
-    };
-  }
-
-  const total =
-    games.reduce(
-      (sum, game) =>
-        sum + game.score,
-      0
-    );
-
-  return {
-    games: games.length,
-
-    averageScore:
-      Math.round(
-        total / games.length
-      ),
-
-    bestScore:
-      Math.max(
-        ...games.map(
-          game => game.score
-        )
-      )
-  };
+  return getFilteredStats(
+    history,
+    game => game.mode === mode
+  );
 }
 
+
+/* ================================
+   ESTATÍSTICAS POR DIFICULDADE
+================================ */
 
 export function getDifficultyStats(
   history,
   difficulty
 ) {
-  const games =
-    history.filter(
-      game =>
-        game.difficulty === difficulty
-    );
-
-  if (!games.length) {
-    return {
-      games: 0,
-      averageScore: 0,
-      bestScore: 0
-    };
-  }
-
-  const total =
-    games.reduce(
-      (sum, game) =>
-        sum + game.score,
-      0
-    );
-
-  return {
-    games: games.length,
-
-    averageScore:
-      Math.round(
-        total / games.length
-      ),
-
-    bestScore:
-      Math.max(
-        ...games.map(
-          game => game.score
-        )
-      )
-  };
+  return getFilteredStats(
+    history,
+    game =>
+      game.difficulty === difficulty
+  );
 }
 
 
-export function formatDate(
-  date
-) {
+/* ================================
+   DATA
+================================ */
+
+export function formatDate(date) {
   return new Intl.DateTimeFormat(
     "pt-BR",
     {
       dateStyle: "short",
       timeStyle: "short"
     }
-  ).format(
-    new Date(date)
-  );
+  ).format(new Date(date));
 }

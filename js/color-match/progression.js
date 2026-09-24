@@ -32,6 +32,10 @@ const levels = [
 ];
 
 
+/* ================================
+   NÍVEIS
+================================ */
+
 export function getLevels() {
   return levels.map(level => ({
     ...level
@@ -39,19 +43,24 @@ export function getLevels() {
 }
 
 
-export function getLevelFromXP(xp = 0) {
-  const currentXP =
-    Math.max(0, Number(xp) || 0);
+/* ================================
+   NÍVEL ATUAL
+================================ */
 
-  let current =
-    levels[0];
+export function getLevelFromXP(xp = 0) {
+  const currentXP = Math.max(
+    0,
+    Number(xp) || 0
+  );
+
+  let current = levels[0];
 
   for (const level of levels) {
-    if (currentXP >= level.xp) {
-      current = level;
-    } else {
+    if (currentXP < level.xp) {
       break;
     }
+
+    current = level;
   }
 
   return {
@@ -60,9 +69,15 @@ export function getLevelFromXP(xp = 0) {
 }
 
 
+/* ================================
+   PRÓXIMO NÍVEL
+================================ */
+
 export function getNextLevel(xp = 0) {
-  const currentXP =
-    Math.max(0, Number(xp) || 0);
+  const currentXP = Math.max(
+    0,
+    Number(xp) || 0
+  );
 
   return (
     levels.find(
@@ -72,9 +87,15 @@ export function getNextLevel(xp = 0) {
 }
 
 
+/* ================================
+   PROGRESSO
+================================ */
+
 export function getProgress(xp = 0) {
-  const currentXP =
-    Math.max(0, Number(xp) || 0);
+  const currentXP = Math.max(
+    0,
+    Number(xp) || 0
+  );
 
   const current =
     getLevelFromXP(currentXP);
@@ -100,20 +121,17 @@ export function getProgress(xp = 0) {
   const earnedXP =
     currentXP - current.xp;
 
-  const progress =
-    Math.min(
-      100,
-      Math.round(
-        (earnedXP / levelXP) * 100
-      )
-    );
-
   return {
     currentLevel: current.level,
     currentName: current.name,
     currentXP,
     nextXP: next.xp,
-    progress,
+    progress: Math.min(
+      100,
+      Math.round(
+        (earnedXP / levelXP) * 100
+      )
+    ),
     remaining:
       next.xp - currentXP,
     maxLevel: false
@@ -121,16 +139,16 @@ export function getProgress(xp = 0) {
 }
 
 
+/* ================================
+   GANHO DE XP
+================================ */
+
 export function calculateXP({
   points = 0,
   streak = 0,
   correct = false
 } = {}) {
-  let xp = 0;
-
-  if (correct) {
-    xp += 100;
-  }
+  let xp = correct ? 100 : 0;
 
   if (points >= 1000) {
     xp += 100;
