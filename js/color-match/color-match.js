@@ -59,7 +59,14 @@ import {
 const ui = new ColorMatchUI();
 
 let stats = getStats();
-let progression = getProgression();
+
+let progression =
+  getProgression();
+
+let previousLevel =
+  getLevelFromXP(
+    progression.xp
+  );
 
 let score = 0;
 let streak = 0;
@@ -207,6 +214,9 @@ function updatePlayerProgression(points) {
   if (newLevel.level > oldLevel.level) {
     ui.showLevelUp(newLevel);
   }
+
+  previousLevel =
+    newLevel;
 }
 
 
@@ -960,6 +970,16 @@ ui.updateProgression(
   getProgress(progression.xp)
 );
 
+import {
+  getProgress,
+  getLevelFromXP,
+  calculateXP
+} from "./progression.js";
+
+import {
+  getProgression,
+  updateProgression as saveProgression
+} from "../storage.js";
 
 function refreshAdvancedStatistics() {
   updateAdvancedStatistics();
