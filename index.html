@@ -1,23 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1"
+    content="width=device-width, initial-scale=1.0"
   >
 
   <meta
     name="description"
-    content="Desafio de Cores: teste sua memória, velocidade e percepção de cores."
+    content="Jogo de adivinhação de cores com diferentes modos, desafios e conquistas."
   >
 
-  <meta
-    name="theme-color"
-    content="#6366f1"
-  >
-
-  <title>Desafio de Cores</title>
+  <title>Jogo de Adivinhar Cor</title>
 
   <link
     rel="stylesheet"
@@ -26,154 +23,272 @@
 </head>
 
 <body>
-  <main class="game-container">
 
-    <header class="game-header">
-      <div>
-        <span class="eyebrow">
-          DESAFIO
-        </span>
+  <!-- ================================
+       CABEÇALHO
+  ================================= -->
 
-        <h1>
-          🎨 Desafio de Cores
-        </h1>
+  <header class="site-header">
 
-        <p>
-          Teste sua memória, velocidade e percepção de cores.
-        </p>
+    <div class="header-content">
+
+      <div class="brand">
+        <span class="brand-icon">🎨</span>
+
+        <div>
+          <h1>Jogo de Adivinhar Cor</h1>
+
+          <p>
+            Teste sua percepção visual
+          </p>
+        </div>
       </div>
 
-      <div class="game-options">
+
+      <div class="header-actions">
+
+        <button
+          id="soundButton"
+          class="icon-button"
+          type="button"
+          aria-label="Desativar som"
+        >
+          🔊
+        </button>
+
+        <button
+          id="themeButton"
+          class="icon-button"
+          type="button"
+          aria-label="Ativar tema escuro"
+        >
+          🌙
+        </button>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- ================================
+       CONTEÚDO PRINCIPAL
+  ================================= -->
+
+  <main class="main-content">
+
+    <!-- ==============================
+         CONFIGURAÇÕES
+    =============================== -->
+
+    <section
+      class="settings-card"
+      aria-label="Configurações do jogo"
+    >
+
+      <div class="setting-group">
 
         <label for="gameMode">
-          Modo
-
-          <select id="gameMode">
-            <option value="match">
-              🎨 Combinação
-            </option>
-
-            <option value="speed">
-              ⚡ Relâmpago
-            </option>
-
-            <option value="sequence">
-              🧠 Sequência
-            </option>
-          </select>
+          Modo de jogo
         </label>
+
+        <select id="gameMode">
+
+          <option value="match">
+            Combinação
+          </option>
+
+          <option value="speed">
+            Relâmpago
+          </option>
+
+          <option value="sequence">
+            Sequência
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="setting-group">
 
         <label for="difficulty">
           Dificuldade
-
-          <select id="difficulty">
-            <option value="easy">
-              Fácil
-            </option>
-
-            <option value="medium">
-              Médio
-            </option>
-
-            <option value="hard">
-              Difícil
-            </option>
-          </select>
         </label>
 
-        <div class="option-buttons">
+        <select id="difficulty">
 
-          <button
-            id="soundButton"
-            class="icon-button"
-            type="button"
-            aria-label="Desativar som"
-            title="Som"
-          >
-            🔊
-          </button>
+          <option value="easy">
+            Fácil
+          </option>
 
-          <button
-            id="themeButton"
-            class="icon-button"
-            type="button"
-            aria-label="Ativar tema escuro"
-            title="Tema"
-          >
-            🌙
-          </button>
+          <option value="medium">
+            Médio
+          </option>
 
-        </div>
+          <option value="hard">
+            Difícil
+          </option>
 
-      </div>
-    </header>
+        </select>
 
-
-    <section
-      class="stats"
-      aria-label="Estatísticas da partida"
-    >
-
-      <div class="stat">
-        <span>Pontos</span>
-        <strong id="score">0</strong>
-      </div>
-
-      <div class="stat">
-        <span>Combo</span>
-        <strong id="streak">0</strong>
-      </div>
-
-      <div class="stat">
-        <span>Vidas</span>
-        <strong id="lives">5</strong>
-      </div>
-
-      <div class="stat">
-        <span>Rodada</span>
-        <strong id="round">1</strong>
-      </div>
-
-      <div class="stat">
-        <span>Recorde</span>
-        <strong id="highScore">0</strong>
-      </div>
-
-      <div class="stat">
-        <span>Melhor Combo</span>
-        <strong id="bestStreak">0</strong>
       </div>
 
     </section>
 
 
+    <!-- ==============================
+         ESTATÍSTICAS
+    =============================== -->
+
     <section
-      class="game-card"
-      aria-label="Área do jogo"
+      class="stats-grid"
+      aria-label="Estatísticas da partida"
     >
 
-      <div
-        class="timer"
-        id="timer"
-        aria-live="polite"
-        aria-label="Tempo restante"
-      >
-        3.0
+      <article class="stat-card">
+        <span class="stat-label">
+          Pontuação
+        </span>
+
+        <strong
+          id="score"
+          class="stat-value"
+        >
+          0
+        </strong>
+      </article>
+
+
+      <article class="stat-card">
+        <span class="stat-label">
+          Sequência
+        </span>
+
+        <strong
+          id="streak"
+          class="stat-value"
+        >
+          0
+        </strong>
+      </article>
+
+
+      <article class="stat-card">
+        <span class="stat-label">
+          Vidas
+        </span>
+
+        <strong
+          id="lives"
+          class="stat-value"
+        >
+          5
+        </strong>
+      </article>
+
+
+      <article class="stat-card">
+        <span class="stat-label">
+          Rodada
+        </span>
+
+        <strong
+          id="round"
+          class="stat-value"
+        >
+          1
+        </strong>
+      </article>
+
+    </section>
+
+
+    <!-- ==============================
+         RECORDES
+    =============================== -->
+
+    <section
+      class="records-card"
+      aria-label="Recordes"
+    >
+
+      <div class="record">
+
+        <span>
+          Maior pontuação
+        </span>
+
+        <strong id="highScore">
+          0
+        </strong>
+
       </div>
 
+
+      <div class="record">
+
+        <span>
+          Melhor sequência
+        </span>
+
+        <strong id="bestStreak">
+          0
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==============================
+         ÁREA DO JOGO
+    =============================== -->
+
+    <section class="game-card">
+
+      <div class="game-header">
+
+        <div>
+
+          <span class="section-label">
+            Desafio atual
+          </span>
+
+          <h2>
+            Descubra a cor
+          </h2>
+
+        </div>
+
+
+        <div
+          id="timer"
+          class="timer"
+          aria-live="polite"
+        >
+          0.0s
+        </div>
+
+      </div>
+
+
+      <!-- ============================
+           ALVO
+      ============================= -->
 
       <div class="target-area">
 
         <div
           id="colorTarget"
           class="color-target"
-          role="img"
-          aria-label="Cor para memorizar"
         ></div>
 
         <p
           id="targetMessage"
-          aria-live="polite"
+          class="target-message"
         >
           Memorize esta cor!
         </p>
@@ -181,39 +296,37 @@
       </div>
 
 
+      <!-- ============================
+           MODO COMBINAÇÃO
+      ============================= -->
+
       <div
         id="matchControls"
-        class="controls hidden"
+        class="game-controls hidden"
       >
-
-        <h2>
-          Recrie a cor
-        </h2>
 
         <div
           id="colorPreview"
           class="color-preview"
-          role="img"
-          aria-label="Pré-visualização da sua cor"
         ></div>
 
 
         <div class="slider-group">
 
           <label for="hue">
-            <span>Matiz</span>
-            <output id="hueValue">
-              180°
-            </output>
+            Matiz
+
+            <span id="hueValue">
+              180
+            </span>
           </label>
 
           <input
             id="hue"
             type="range"
             min="0"
-            max="360"
+            max="359"
             value="180"
-            aria-label="Matiz"
           >
 
         </div>
@@ -222,10 +335,11 @@
         <div class="slider-group">
 
           <label for="saturation">
-            <span>Saturação</span>
-            <output id="saturationValue">
-              50%
-            </output>
+            Saturação
+
+            <span id="saturationValue">
+              65%
+            </span>
           </label>
 
           <input
@@ -233,8 +347,7 @@
             type="range"
             min="0"
             max="100"
-            value="50"
-            aria-label="Saturação"
+            value="65"
           >
 
         </div>
@@ -243,10 +356,11 @@
         <div class="slider-group">
 
           <label for="lightness">
-            <span>Brilho</span>
-            <output id="lightnessValue">
+            Luminosidade
+
+            <span id="lightnessValue">
               50%
-            </output>
+            </span>
           </label>
 
           <input
@@ -255,7 +369,6 @@
             min="0"
             max="100"
             value="50"
-            aria-label="Brilho"
           >
 
         </div>
@@ -267,55 +380,63 @@
           type="button"
           disabled
         >
-          Verificar cor
+          Conferir cor
         </button>
 
       </div>
 
 
+      <!-- ============================
+           MODO RELÂMPAGO
+      ============================= -->
+
       <div
         id="speedControls"
-        class="controls hidden"
+        class="game-controls hidden"
       >
-
-        <h2>
-          ⚡ Qual era a cor?
-        </h2>
 
         <div
           id="speedPreview"
-          class="speed-preview"
-          aria-hidden="true"
+          class="speed-preview hidden"
         ></div>
 
+
+        <p class="control-message">
+          Escolha a cor que você memorizou.
+        </p>
+
+
         <div
-          class="speed-options"
           id="speedOptions"
-          aria-label="Opções de cores"
+          class="color-options"
         >
 
           <button
-            type="button"
             class="color-option"
-            aria-label="Opção de cor 1"
+            type="button"
+            data-index="0"
+            aria-label="Escolher opção de cor 1"
           ></button>
 
           <button
-            type="button"
             class="color-option"
-            aria-label="Opção de cor 2"
+            type="button"
+            data-index="1"
+            aria-label="Escolher opção de cor 2"
           ></button>
 
           <button
-            type="button"
             class="color-option"
-            aria-label="Opção de cor 3"
+            type="button"
+            data-index="2"
+            aria-label="Escolher opção de cor 3"
           ></button>
 
           <button
-            type="button"
             class="color-option"
-            aria-label="Opção de cor 4"
+            type="button"
+            data-index="3"
+            aria-label="Escolher opção de cor 4"
           ></button>
 
         </div>
@@ -323,80 +444,81 @@
       </div>
 
 
+      <!-- ============================
+           MODO SEQUÊNCIA
+      ============================= -->
+
       <div
         id="sequenceControls"
-        class="controls hidden"
+        class="game-controls hidden"
       >
-
-        <h2>
-          🧠 Reproduza a sequência
-        </h2>
 
         <p
           id="sequenceMessage"
-          class="mode-message"
-          aria-live="polite"
+          class="control-message"
         >
-          Observe as cores e repita a sequência.
+          Observe a sequência de cores.
         </p>
+
 
         <div
           id="sequencePreview"
           class="sequence-preview"
-          aria-label="Sequência para memorizar"
         ></div>
 
+
         <div
-          class="sequence-options"
           id="sequenceOptions"
-          aria-label="Opções de sequência"
+          class="sequence-options"
         >
 
           <button
-            type="button"
             class="sequence-color"
-            data-color="0"
-            aria-label="Cor 1"
+            type="button"
+            data-index="0"
+            aria-label="Escolher cor 1"
           ></button>
 
           <button
-            type="button"
             class="sequence-color"
-            data-color="1"
-            aria-label="Cor 2"
+            type="button"
+            data-index="1"
+            aria-label="Escolher cor 2"
           ></button>
 
           <button
-            type="button"
             class="sequence-color"
-            data-color="2"
-            aria-label="Cor 3"
+            type="button"
+            data-index="2"
+            aria-label="Escolher cor 3"
           ></button>
 
           <button
-            type="button"
             class="sequence-color"
-            data-color="3"
-            aria-label="Cor 4"
+            type="button"
+            data-index="3"
+            aria-label="Escolher cor 4"
           ></button>
 
         </div>
 
-        <div class="sequence-progress">
-          <span>Sequência:</span>
 
-          <strong
-            id="sequenceProgress"
-            aria-live="polite"
-          >
-            0 / 3
-          </strong>
+        <div
+          id="sequenceProgress"
+          class="sequence-progress"
+          aria-live="polite"
+        >
+          0/3
         </div>
 
       </div>
 
 
-      <div
+      <!-- ============================
+           RESULTADO
+      ============================= -->
+
+      <section
         id="result"
         class="result hidden"
         aria-live="polite"
@@ -406,35 +528,56 @@
           Resultado
         </h2>
 
+
         <div class="result-colors">
 
-          <div>
-            <span>Original</span>
+          <div class="result-color-item">
+
+            <span>
+              Cor correta
+            </span>
 
             <div
               id="originalColor"
               class="result-color"
-              aria-hidden="true"
             ></div>
+
           </div>
 
-          <div>
-            <span>Sua cor</span>
+
+          <div class="result-color-item">
+
+            <span>
+              Sua cor
+            </span>
 
             <div
               id="guessedColor"
               class="result-color"
-              aria-hidden="true"
             ></div>
+
           </div>
 
         </div>
 
-        <strong id="scoreResult">
-          0 / 1000
-        </strong>
 
-        <p id="resultMessage"></p>
+        <div class="result-score">
+
+          <span>
+            Pontos
+          </span>
+
+          <strong id="scoreResult">
+            0
+          </strong>
+
+        </div>
+
+
+        <p id="resultMessage">
+          Resultado da rodada.
+        </p>
+
 
         <button
           id="nextButton"
@@ -445,30 +588,359 @@
           Próxima rodada
         </button>
 
-        <button
-          id="restartButton"
-          class="secondary-button"
-          type="button"
-        >
-          🔄 Jogar novamente
-        </button>
+      </section>
 
-      </div>
+
+      <!-- ============================
+           REINICIAR
+      ============================= -->
+
+      <button
+        id="restartButton"
+        class="secondary-button"
+        type="button"
+      >
+        Reiniciar jogo
+      </button>
 
     </section>
 
 
-    <footer class="game-footer">
-      <span>
-        Desafio de Cores
+    <!-- ==============================
+         CONQUISTAS
+    =============================== -->
+    <section
+  id="progression"
+  class="progression-section"
+  aria-labelledby="progressionTitle"
+>
+  <div class="progression-header">
+
+    <div>
+      <span class="section-label">
+        Perfil
       </span>
 
-      <span>
-        Teste sua memória 🎨
+      <h2 id="progressionTitle">
+        🎮 Seu Progresso
+      </h2>
+
+      <p>
+        Evolua jogando e domine as cores.
+      </p>
+    </div>
+
+  </div>
+
+
+  <div class="player-level">
+
+    <div class="level-badge">
+      <span>NÍVEL</span>
+
+      <strong id="playerLevel">
+        1
+      </strong>
+    </div>
+
+
+    <div class="level-info">
+
+      <div class="level-title">
+        <strong id="playerLevelName">
+          Iniciante
+        </strong>
+
+        <span>
+          <span id="playerXP">
+            0
+          </span>
+          /
+          <span id="playerNextXP">
+            500
+          </span>
+          XP
+        </span>
+      </div>
+
+
+      <div
+        class="progress-bar"
+        role="progressbar"
+        aria-label="Progresso para o próximo nível"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+      >
+        <div
+          id="progressBar"
+          class="progress-bar-fill"
+        ></div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<div
+  id="xpNotification"
+  class="xp-notification hidden"
+  role="status"
+  aria-live="polite"
+></div>
+
+    <section
+      id="achievements"
+      class="achievements-section"
+      aria-labelledby="achievementsTitle"
+    >
+
+      <div class="achievements-header">
+
+        <div>
+
+          <span class="section-label">
+            Progresso
+          </span>
+
+          <h2 id="achievementsTitle">
+            🏆 Conquistas
+          </h2>
+
+          <p>
+            Complete desafios e desbloqueie
+            novas conquistas.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="achievementList"
+        class="achievement-list"
+      >
+        <!--
+          As conquistas serão inseridas
+          automaticamente pelo JavaScript.
+        -->
+      </div>
+    </section>
+
+    <section
+  id="statistics"
+  class="statistics-section"
+  aria-labelledby="statisticsTitle"
+>
+  <div class="statistics-header">
+
+    <div>
+      <span class="section-label">
+        Desempenho
       </span>
-    </footer>
+
+      <h2 id="statisticsTitle">
+        📊 Estatísticas
+      </h2>
+
+      <p>
+        Acompanhe sua evolução no jogo.
+      </p>
+    </div>
+
+  </div>
+
+
+  <div class="statistics-grid">
+
+    <article class="stat-card">
+      <span class="stat-card-icon">
+        🎯
+      </span>
+
+      <div>
+        <span>
+          Taxa de acerto
+        </span>
+
+        <strong id="accuracyStat">
+          0%
+        </strong>
+      </div>
+    </article>
+
+
+    <article class="stat-card">
+      <span class="stat-card-icon">
+        📈
+      </span>
+
+      <div>
+        <span>
+          Média de pontos
+        </span>
+
+        <strong id="averageScoreStat">
+          0
+        </strong>
+      </div>
+    </article>
+
+
+    <article class="stat-card">
+      <span class="stat-card-icon">
+        🏆
+      </span>
+
+      <div>
+        <span>
+          Maior pontuação
+        </span>
+
+        <strong id="highScoreStat">
+          0
+        </strong>
+      </div>
+    </article>
+
+
+    <article class="stat-card">
+      <span class="stat-card-icon">
+        🔥
+      </span>
+
+      <div>
+        <span>
+          Melhor sequência
+        </span>
+
+        <strong id="bestStreakStat">
+          0
+        </strong>
+      </div>
+    </article>
+
+
+    <article class="stat-card">
+      <span class="stat-card-icon">
+        🎮
+      </span>
+
+      <div>
+        <span>
+          Partidas
+        </span>
+
+        <strong id="gamesStat">
+          0
+        </strong>
+      </div>
+    </article>
+
+
+    <article class="stat-card">
+      <span class="stat-card-icon">
+        🎨
+      </span>
+
+      <div>
+        <span>
+          Acertos
+        </span>
+
+        <strong id="correctStat">
+          0
+        </strong>
+      </div>
+    </article>
+
+  </div>
+
+
+  <div class="performance-section">
+
+    <h3>
+      Desempenho por modo
+    </h3>
+
+    <div
+      id="modeStatistics"
+      class="performance-grid"
+    ></div>
+
+  </div>
+
+
+  <div class="history-section">
+
+    <div class="history-header">
+      <div>
+        <h3>
+          🕘 Últimas partidas
+        </h3>
+
+        <p>
+          Suas 10 partidas mais recentes.
+        </p>
+      </div>
+
+      <button
+        id="clearHistoryButton"
+        class="secondary-button"
+        type="button"
+      >
+        Limpar
+      </button>
+    </div>
+
+
+    <div
+      id="gameHistory"
+      class="game-history"
+    ></div>
+
+  </div>
+
+</section>
+
+
+    <!-- ==============================
+         NOTIFICAÇÃO DE CONQUISTA
+    =============================== -->
+
+    <div
+      id="achievementNotification"
+      class="achievement-notification hidden"
+      role="status"
+      aria-live="polite"
+    ></div>
 
   </main>
+
+
+  <!-- ================================
+       RODAPÉ
+  ================================= -->
+
+  <footer class="site-footer">
+
+    <p>
+      Jogo de Adivinhar Cor
+    </p>
+
+    <p>
+      Desenvolvido com HTML, CSS e JavaScript.
+    </p>
+
+  </footer>
+
+
+  <!-- ================================
+       JAVASCRIPT
+  ================================= -->
 
   <script
     type="module"
@@ -476,4 +948,5 @@
   ></script>
 
 </body>
+
 </html>

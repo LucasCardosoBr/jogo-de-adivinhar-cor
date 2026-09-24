@@ -1,4 +1,7 @@
-import { randomHSL, hsl, calculateScore } from "./color-utils.js";
+import {
+  randomHSL,
+  calculateScore
+} from "./color-utils.js";
 
 const settings = {
   easy: {
@@ -56,7 +59,9 @@ export function createSpeedRound() {
 }
 
 export function createSequenceRound(difficulty) {
-  const length = getSettings(difficulty).sequence;
+  const length =
+    getSettings(difficulty).sequence;
+
   const palette = [];
 
   while (palette.length < 4) {
@@ -82,44 +87,15 @@ export function createSequenceRound(difficulty) {
   };
 }
 
-export function colorToCSS(color) {
-  return hsl(color);
-}
-
-export function getSpeedOptions(round) {
-  return round.options.map(colorToCSS);
-}
-
-export function getSequenceColors(sequence, palette) {
-  return sequence.map(index => colorToCSS(palette[index]));
-}
-
-export function checkSequence(sequence, answer) {
-  if (sequence.length !== answer.length) {
-    return false;
-  }
-
-  return sequence.every(
-    (index, position) => index === answer[position]
-  );
-}
-
-export function shuffle(array) {
+function shuffle(array) {
   const result = [...array];
 
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
 
-    [result[i], result[j]] = [result[j], result[i]];
+    [result[i], result[j]] =
+      [result[j], result[i]];
   }
 
   return result;
-}
-
-export function getModeName(mode) {
-  return {
-    match: "Combinação de Cores",
-    speed: "Cor Relâmpago",
-    sequence: "Sequência de Cores"
-  }[mode] || "Combinação de Cores";
 }

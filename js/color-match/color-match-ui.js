@@ -1,289 +1,208 @@
 export class ColorMatchUI {
   constructor() {
-    this.$ = id => document.getElementById(id);
+    this.gameMode =
+      document.getElementById("gameMode");
 
-    this.gameMode = this.$("gameMode");
-    this.difficulty = this.$("difficulty");
-    this.soundButton = this.$("soundButton");
-    this.themeButton = this.$("themeButton");
+    this.difficulty =
+      document.getElementById("difficulty");
 
-    this.score = this.$("score");
-    this.streak = this.$("streak");
-    this.lives = this.$("lives");
-    this.round = this.$("round");
+    this.soundButton =
+      document.getElementById("soundButton");
 
-    this.highScore = this.$("highScore");
-    this.bestStreak = this.$("bestStreak");
+    this.themeButton =
+      document.getElementById("themeButton");
 
-    this.timer = this.$("timer");
+    this.score =
+      document.getElementById("score");
 
-    this.targetArea =
-      document.querySelector(".target-area");
+    this.streak =
+      document.getElementById("streak");
 
-    this.target = this.$("colorTarget");
+    this.lives =
+      document.getElementById("lives");
+
+    this.round =
+      document.getElementById("round");
+
+    this.highScore =
+      document.getElementById("highScore");
+
+    this.bestStreak =
+      document.getElementById("bestStreak");
+
+    this.timer =
+      document.getElementById("timer");
+
+    this.colorTarget =
+      document.getElementById("colorTarget");
+
     this.targetMessage =
-      this.$("targetMessage");
+      document.getElementById("targetMessage");
 
     this.matchControls =
-      this.$("matchControls");
-
-    this.preview =
-      this.$("colorPreview");
-
-    this.hue = this.$("hue");
-    this.saturation =
-      this.$("saturation");
-
-    this.lightness =
-      this.$("lightness");
-
-    this.hueValue =
-      this.$("hueValue");
-
-    this.saturationValue =
-      this.$("saturationValue");
-
-    this.lightnessValue =
-      this.$("lightnessValue");
-
-    this.checkButton =
-      this.$("checkButton");
+      document.getElementById("matchControls");
 
     this.speedControls =
-      this.$("speedControls");
-
-    this.speedPreview =
-      this.$("speedPreview");
-
-    this.speedOptions =
-      this.$("speedOptions");
+      document.getElementById("speedControls");
 
     this.sequenceControls =
-      this.$("sequenceControls");
+      document.getElementById("sequenceControls");
 
-    this.sequenceMessage =
-      this.$("sequenceMessage");
+    this.colorPreview =
+      document.getElementById("colorPreview");
 
-    this.sequencePreview =
-      this.$("sequencePreview");
+    this.hue =
+      document.getElementById("hue");
+
+    this.saturation =
+      document.getElementById("saturation");
+
+    this.lightness =
+      document.getElementById("lightness");
+
+    this.hueValue =
+      document.getElementById("hueValue");
+
+    this.saturationValue =
+      document.getElementById(
+        "saturationValue"
+      );
+
+    this.lightnessValue =
+      document.getElementById(
+        "lightnessValue"
+      );
+
+    this.checkButton =
+      document.getElementById("checkButton");
+
+    this.speedOptions =
+      document.getElementById("speedOptions");
 
     this.sequenceOptions =
-      this.$("sequenceOptions");
+      document.getElementById(
+        "sequenceOptions"
+      );
+
+    this.sequencePreview =
+      document.getElementById(
+        "sequencePreview"
+      );
 
     this.sequenceProgress =
-      this.$("sequenceProgress");
+      document.getElementById(
+        "sequenceProgress"
+      );
+
+    this.sequenceMessage =
+      document.getElementById(
+        "sequenceMessage"
+      );
 
     this.result =
-      this.$("result");
+      document.getElementById("result");
 
     this.resultTitle =
-      this.$("resultTitle");
+      document.getElementById(
+        "resultTitle"
+      );
 
     this.originalColor =
-      this.$("originalColor");
+      document.getElementById(
+        "originalColor"
+      );
 
     this.guessedColor =
-      this.$("guessedColor");
+      document.getElementById(
+        "guessedColor"
+      );
 
     this.scoreResult =
-      this.$("scoreResult");
+      document.getElementById(
+        "scoreResult"
+      );
 
     this.resultMessage =
-      this.$("resultMessage");
+      document.getElementById(
+        "resultMessage"
+      );
 
     this.nextButton =
-      this.$("nextButton");
+      document.getElementById("nextButton");
 
     this.restartButton =
-      this.$("restartButton");
+      document.getElementById(
+        "restartButton"
+      );
+
+    this.achievements =
+      document.getElementById(
+        "achievements"
+      );
+
+    this.achievementList =
+      document.getElementById(
+        "achievementList"
+      );
+
+    this.achievementNotification =
+      document.getElementById(
+        "achievementNotification"
+      );
+    
+    this.progression =
+      document.querySelector(
+        "#progression"
+      );
+
+    this.playerLevel =
+      document.querySelector(
+        "#playerLevel"
+      );
+
+    this.playerLevelName =
+      document.querySelector(
+        "#playerLevelName"
+      );
+
+    this.playerXP =
+      document.querySelector(
+        "#playerXP"
+      );
+
+    this.playerNextXP =
+      document.querySelector(
+        "#playerNextXP"
+      );
+
+    this.progressBar =
+      document.querySelector(
+        "#progressBar"
+      );
+
+    this.xpNotification =
+      document.querySelector(
+        "#xpNotification"
+    );
   }
+
+  /* ================================
+     CONFIGURAÇÕES
+  ================================= */
 
   getMode() {
     return this.gameMode.value;
   }
 
+
   getDifficulty() {
     return this.difficulty.value;
   }
 
-  getGuess() {
-    return {
-      h: Number(this.hue.value),
-      s: Number(this.saturation.value),
-      l: Number(this.lightness.value)
-    };
-  }
 
-  setColor(element, color) {
-    if (element) {
-      element.style.background = color;
-    }
-  }
-
-  setTimer(value) {
-    this.timer.textContent =
-      Math.max(0, value).toFixed(1);
-  }
-
-  showTarget(
-    color,
-    message = "Memorize esta cor!"
-  ) {
-    this.setTargetAreaVisible(true);
-    this.setColor(this.target, color);
-
-    this.target.classList.remove(
-      "hidden-color"
-    );
-
-    this.targetMessage.textContent =
-      message;
-  }
-
-  hideTarget(
-    message = "Agora responda!"
-  ) {
-    this.target.classList.add(
-      "hidden-color"
-    );
-
-    this.targetMessage.textContent =
-      message;
-  }
-
-  setTargetAreaVisible(visible) {
-    this.targetArea?.classList.toggle(
-      "hidden",
-      !visible
-    );
-  }
-
-  showModeControls(mode) {
-    this.matchControls.classList.add(
-      "hidden"
-    );
-
-    this.speedControls.classList.add(
-      "hidden"
-    );
-
-    this.sequenceControls.classList.add(
-      "hidden"
-    );
-
-    if (mode === "match") {
-      this.matchControls.classList.remove(
-        "hidden"
-      );
-    }
-
-    if (mode === "speed") {
-      this.speedControls.classList.remove(
-        "hidden"
-      );
-    }
-
-    if (mode === "sequence") {
-      this.sequenceControls.classList.remove(
-        "hidden"
-      );
-    }
-  }
-
-  hideControls() {
-    this.matchControls.classList.add(
-      "hidden"
-    );
-
-    this.speedControls.classList.add(
-      "hidden"
-    );
-
-    this.sequenceControls.classList.add(
-      "hidden"
-    );
-  }
-
-  hideResult() {
-    this.result.classList.add(
-      "hidden"
-    );
-  }
-
-  showResult(
-    target,
-    guess,
-    score,
-    message
-  ) {
-    this.setColor(
-      this.originalColor,
-      target
-    );
-
-    this.setColor(
-      this.guessedColor,
-      guess
-    );
-
-    this.scoreResult.textContent =
-      `${score} / 1000`;
-
-    this.resultMessage.textContent =
-      message;
-
-    this.resultTitle.textContent =
-      score >= 800
-        ? "Excelente!"
-        : score >= 500
-          ? "Muito bom!"
-          : "Tente novamente!";
-
-    this.result.classList.remove(
-      "hidden"
-    );
-  }
-
-  showEndGame(score, round) {
-    this.resultTitle.textContent =
-      "Fim de jogo!";
-
-    this.scoreResult.textContent =
-      `${score} pontos`;
-
-    this.resultMessage.textContent =
-      `Você chegou à rodada ${round}.`;
-
-    this.result.classList.remove(
-      "hidden"
-    );
-  }
-
-  updatePreview(color) {
-    this.setColor(
-      this.preview,
-      color
-    );
-  }
-
-  updateValues() {
-    this.hueValue.textContent =
-      `${this.hue.value}°`;
-
-    this.saturationValue.textContent =
-      `${this.saturation.value}%`;
-
-    this.lightnessValue.textContent =
-      `${this.lightness.value}%`;
-  }
-
-  resetSliders() {
-    this.hue.value = 180;
-    this.saturation.value = 50;
-    this.lightness.value = 50;
-
-    this.updateValues();
-  }
+  /* ================================
+     ESTATÍSTICAS
+  ================================= */
 
   updateStats(
     score,
@@ -295,7 +214,21 @@ export class ColorMatchUI {
     this.streak.textContent = streak;
     this.lives.textContent = lives;
     this.round.textContent = round;
+
+    this.animateValue(this.score);
+    this.animateValue(this.streak);
+
+    this.streak.classList.toggle(
+      "streak-active",
+      streak >= 3
+    );
+
+    this.lives.classList.toggle(
+      "lives-danger",
+      lives <= 1
+    );
   }
+
 
   updateRecords(
     highScore,
@@ -308,36 +241,252 @@ export class ColorMatchUI {
       bestStreak;
   }
 
-  setCheckEnabled(enabled) {
-    this.checkButton.disabled =
-      !enabled;
+
+  animateValue(element) {
+    if (!element) {
+      return;
+    }
+
+    element.classList.remove(
+      "stat-value-pop"
+    );
+
+    void element.offsetWidth;
+
+    element.classList.add(
+      "stat-value-pop"
+    );
   }
+
+
+  /* ================================
+     TIMER
+  ================================= */
+
+  setTimer(time) {
+    if (!this.timer) {
+      return;
+    }
+
+    this.timer.textContent =
+      `${Math.max(0, time).toFixed(1)}s`;
+
+    this.timer.classList.toggle(
+      "timer-warning",
+      time <= 1.5 && time > 0.7
+    );
+
+    this.timer.classList.toggle(
+      "timer-danger",
+      time <= 0.7
+    );
+  }
+
+
+  /* ================================
+     ALVO
+  ================================= */
+
+  showTarget(
+    color,
+    message
+  ) {
+    this.setTargetAreaVisible(true);
+
+    this.colorTarget.style.background =
+      color;
+
+    this.targetMessage.textContent =
+      message;
+
+    this.colorTarget.classList.remove(
+      "target-reveal"
+    );
+
+    void this.colorTarget.offsetWidth;
+
+    this.colorTarget.classList.add(
+      "target-reveal"
+    );
+  }
+
+
+  hideTarget(message) {
+    this.colorTarget.classList.add(
+      "hidden-color"
+    );
+
+    this.targetMessage.textContent =
+      message;
+  }
+
+
+  setTargetAreaVisible(visible) {
+    const area =
+      document.querySelector(
+        ".target-area"
+      );
+
+    if (area) {
+      area.classList.toggle(
+        "hidden",
+        !visible
+      );
+    }
+  }
+
+
+  /* ================================
+     CONTROLES
+  ================================= */
+
+  hideControls() {
+    this.matchControls?.classList.add(
+      "hidden"
+    );
+
+    this.speedControls?.classList.add(
+      "hidden"
+    );
+
+    this.sequenceControls?.classList.add(
+      "hidden"
+    );
+  }
+
+
+  showModeControls(mode) {
+    this.hideControls();
+
+    const controls = {
+      match: this.matchControls,
+      speed: this.speedControls,
+      sequence: this.sequenceControls
+    };
+
+    controls[mode]?.classList.remove(
+      "hidden"
+    );
+  }
+
+
+  setCheckEnabled(enabled) {
+    if (this.checkButton) {
+      this.checkButton.disabled =
+        !enabled;
+    }
+  }
+
 
   setNextEnabled(enabled) {
-    this.nextButton.disabled =
-      !enabled;
+    if (this.nextButton) {
+      this.nextButton.disabled =
+        !enabled;
+    }
   }
 
-  setRestartEnabled(enabled) {
-    this.restartButton.disabled =
-      !enabled;
+
+  /* ================================
+     SLIDERS
+  ================================= */
+
+  getGuess() {
+    return {
+      h: Number(this.hue.value),
+      s: Number(this.saturation.value),
+      l: Number(this.lightness.value)
+    };
   }
+
+
+  resetSliders() {
+    this.hue.value = 180;
+    this.saturation.value = 65;
+    this.lightness.value = 50;
+
+    this.updateValues();
+  }
+
+
+  updateValues() {
+    this.hueValue.textContent =
+      this.hue.value;
+
+    this.saturationValue.textContent =
+      `${this.saturation.value}%`;
+
+    this.lightnessValue.textContent =
+      `${this.lightness.value}%`;
+  }
+
+
+  updatePreview(color) {
+    if (!this.colorPreview) {
+      return;
+    }
+
+    this.colorPreview.style.background =
+      color;
+
+    this.colorPreview.classList.remove(
+      "preview-update"
+    );
+
+    void this.colorPreview.offsetWidth;
+
+    this.colorPreview.classList.add(
+      "preview-update"
+    );
+  }
+
+
+  /* ================================
+     MODO RELÂMPAGO
+  ================================= */
+
+  showSpeedPreview() {
+    const preview =
+      document.getElementById(
+        "speedPreview"
+      );
+
+    preview?.classList.remove(
+      "hidden"
+    );
+  }
+
+
+  hideSpeedPreview() {
+    const preview =
+      document.getElementById(
+        "speedPreview"
+      );
+
+    preview?.classList.add(
+      "hidden"
+    );
+  }
+
 
   setSpeedOptions(colors) {
     const buttons = [
-      ...this.speedOptions.querySelectorAll(
-        ".color-option"
-      )
+      ...this.speedOptions
+        .querySelectorAll(
+          ".color-option"
+        )
     ];
 
     buttons.forEach(
       (button, index) => {
         button.disabled = false;
-        button.dataset.index = index;
 
-        button.setAttribute(
-          "aria-label",
-          `Escolher opção de cor ${index + 1}`
+        button.dataset.index =
+          index;
+
+        button.classList.remove(
+          "selected",
+          "correct-option",
+          "wrong-option"
         );
 
         if (colors[index]) {
@@ -349,9 +498,11 @@ export class ColorMatchUI {
       }
     );
   }
+
+
   disableSpeedOptions() {
     this.speedOptions
-      .querySelectorAll(
+      ?.querySelectorAll(
         ".color-option"
       )
       .forEach(button => {
@@ -359,36 +510,31 @@ export class ColorMatchUI {
       });
   }
 
-  setSpeedPreview(color) {
-    this.setColor(
-      this.speedPreview,
-      color
-    );
-  }
 
-  hideSpeedPreview() {
-    this.speedPreview.classList.add(
-      "hidden"
-    );
-  }
-
-  showSpeedPreview() {
-    this.speedPreview.classList.remove(
-      "hidden"
-    );
-  }
+  /* ================================
+     SEQUÊNCIA
+  ================================= */
 
   setSequenceOptions(colors) {
     const buttons = [
-      ...this.sequenceOptions.querySelectorAll(
-        ".sequence-color"
-      )
+      ...this.sequenceOptions
+        .querySelectorAll(
+          ".sequence-color"
+        )
     ];
 
     buttons.forEach(
       (button, index) => {
         button.disabled = false;
-        button.dataset.index = index;
+
+        button.dataset.index =
+          index;
+
+        button.classList.remove(
+          "selected",
+          "correct-option",
+          "wrong-option"
+        );
 
         if (colors[index]) {
           this.setColor(
@@ -400,9 +546,10 @@ export class ColorMatchUI {
     );
   }
 
+
   disableSequenceOptions() {
     this.sequenceOptions
-      .querySelectorAll(
+      ?.querySelectorAll(
         ".sequence-color"
       )
       .forEach(button => {
@@ -410,18 +557,23 @@ export class ColorMatchUI {
       });
   }
 
+
   setSequencePreview(colors) {
-    this.sequencePreview.innerHTML =
-      "";
+    if (!this.sequencePreview) {
+      return;
+    }
+
+    this.sequencePreview.innerHTML = "";
 
     colors.forEach(color => {
       const item =
         document.createElement("span");
 
-      this.setColor(
-        item,
-        color
-      );
+      item.className =
+        "sequence-preview-color";
+
+      item.style.background =
+        color;
 
       this.sequencePreview.appendChild(
         item
@@ -429,27 +581,281 @@ export class ColorMatchUI {
     });
   }
 
+
   clearSequencePreview() {
-    this.sequencePreview.innerHTML =
-      "";
+    if (this.sequencePreview) {
+      this.sequencePreview.innerHTML =
+        "";
+    }
   }
+
 
   setSequenceProgress(
     current,
     total
   ) {
+    if (!this.sequenceProgress) {
+      return;
+    }
+
     this.sequenceProgress.textContent =
-      `${current} / ${total}`;
+      `${current}/${total}`;
+
+    this.sequenceProgress.classList.remove(
+      "progress-pop"
+    );
+
+    void this.sequenceProgress
+      .offsetWidth;
+
+    this.sequenceProgress.classList.add(
+      "progress-pop"
+    );
   }
+
 
   setSequenceMessage(message) {
-    this.sequenceMessage.textContent =
-      message;
+    if (this.sequenceMessage) {
+      this.sequenceMessage.textContent =
+        message;
+    }
   }
 
+
+  /* ================================
+     RESULTADO
+  ================================= */
+
+  showResult(
+    original,
+    guessed,
+    points,
+    message
+  ) {
+    this.result?.classList.remove(
+      "hidden",
+      "result-success",
+      "result-failure"
+    );
+
+    if (this.resultTitle) {
+      this.resultTitle.textContent =
+        points >= 500
+          ? "Resposta correta!"
+          : "Resposta incorreta";
+    }
+
+    if (this.originalColor) {
+      this.originalColor.style.background =
+        original;
+    }
+
+    if (this.guessedColor) {
+      this.guessedColor.style.background =
+        guessed;
+    }
+
+    if (this.scoreResult) {
+      this.scoreResult.textContent =
+        points;
+    }
+
+    if (this.resultMessage) {
+      this.resultMessage.textContent =
+        message;
+    }
+
+    this.result?.classList.add(
+      points >= 500
+        ? "result-success"
+        : "result-failure"
+    );
+
+    this.animateResult();
+  }
+
+
+  showEndGame(
+    score,
+    round
+  ) {
+    this.result?.classList.remove(
+      "hidden"
+    );
+
+    if (this.resultTitle) {
+      this.resultTitle.textContent =
+        "Fim de jogo!";
+    }
+
+    if (this.scoreResult) {
+      this.scoreResult.textContent =
+        score;
+    }
+
+    if (this.resultMessage) {
+      this.resultMessage.textContent =
+        `Você chegou até a rodada ${round}.`;
+    }
+
+    this.result?.classList.add(
+      "result-failure"
+    );
+
+    this.animateResult();
+  }
+
+
+  hideResult() {
+    this.result?.classList.add(
+      "hidden"
+    );
+  }
+
+
+  animateResult() {
+    if (!this.result) {
+      return;
+    }
+
+    this.result.classList.remove(
+      "result-pop"
+    );
+
+    void this.result.offsetWidth;
+
+    this.result.classList.add(
+      "result-pop"
+    );
+  }
+
+
+  /* ================================
+     CONQUISTAS
+  ================================= */
+
+  renderAchievements(
+    achievements,
+    unlocked
+  ) {
+    if (!this.achievementList) {
+      return;
+    }
+
+    this.achievementList.innerHTML =
+      "";
+
+    achievements.forEach(
+      achievement => {
+        const isUnlocked =
+          unlocked.includes(
+            achievement.id
+          );
+
+        const item =
+          document.createElement("article");
+
+        item.className =
+          "achievement";
+
+        if (isUnlocked) {
+          item.classList.add(
+            "unlocked"
+          );
+        }
+
+        item.dataset.id =
+          achievement.id;
+
+        item.innerHTML = `
+          <div class="achievement-icon">
+            ${achievement.icon}
+          </div>
+
+          <div class="achievement-info">
+            <h3>${achievement.title}</h3>
+            <p>${achievement.description}</p>
+          </div>
+
+          <div class="achievement-status">
+            ${isUnlocked ? "✓" : "🔒"}
+          </div>
+        `;
+
+        this.achievementList.appendChild(
+          item
+        );
+      }
+    );
+  }
+
+
+  showAchievementNotification(
+    achievement
+  ) {
+    if (!this.achievementNotification) {
+      return;
+    }
+
+    this.achievementNotification.innerHTML = `
+      <span class="achievement-notification-icon">
+        ${achievement.icon}
+      </span>
+
+      <div>
+        <strong>Conquista desbloqueada!</strong>
+        <span>${achievement.title}</span>
+      </div>
+    `;
+
+    this.achievementNotification.classList.remove(
+      "hidden",
+      "achievement-show"
+    );
+
+    void this.achievementNotification
+      .offsetWidth;
+
+    this.achievementNotification.classList.add(
+      "achievement-show"
+    );
+
+    clearTimeout(
+      this.achievementNotificationTimer
+    );
+
+    this.achievementNotificationTimer =
+      setTimeout(() => {
+        this.achievementNotification.classList.remove(
+          "achievement-show"
+        );
+
+        this.achievementNotification.classList.add(
+          "hidden"
+        );
+      }, 3500);
+  }
+
+
+  /* ================================
+     UTILITÁRIOS
+  ================================= */
+
+  setColor(element, color) {
+    element.style.background =
+      color;
+  }
+
+
   setSoundButton(enabled) {
+    if (!this.soundButton) {
+      return;
+    }
+
     this.soundButton.textContent =
-      enabled ? "🔊" : "🔇";
+      enabled
+        ? "🔊"
+        : "🔇";
 
     this.soundButton.setAttribute(
       "aria-label",
@@ -457,16 +863,18 @@ export class ColorMatchUI {
         ? "Desativar som"
         : "Ativar som"
     );
-
-    this.soundButton.title =
-      enabled
-        ? "Som ligado"
-        : "Som desligado";
   }
 
+
   setThemeButton(isDark) {
+    if (!this.themeButton) {
+      return;
+    }
+
     this.themeButton.textContent =
-      isDark ? "☀️" : "🌙";
+      isDark
+        ? "☀️"
+        : "🌙";
 
     this.themeButton.setAttribute(
       "aria-label",
@@ -474,33 +882,339 @@ export class ColorMatchUI {
         ? "Ativar tema claro"
         : "Ativar tema escuro"
     );
-
-    this.themeButton.title =
-      isDark
-        ? "Tema claro"
-        : "Tema escuro";
   }
 
-  reset() {
-    this.hideResult();
-    this.hideControls();
+  updateProgression(data) {
+  if (!data) {
+    return;
+  }
 
-    this.clearSequencePreview();
+  if (this.playerLevel) {
+    this.playerLevel.textContent =
+      data.currentLevel;
+  }
 
-    this.setTargetAreaVisible(
-      true
+  if (this.playerLevelName) {
+    this.playerLevelName.textContent =
+      data.currentName;
+  }
+
+  if (this.playerXP) {
+    this.playerXP.textContent =
+      data.currentXP;
+  }
+
+  if (this.playerNextXP) {
+    this.playerNextXP.textContent =
+      data.maxLevel
+        ? "Nível máximo"
+        : data.nextXP;
+  }
+
+  if (this.progressBar) {
+    this.progressBar.style.width =
+      `${data.progress}%`;
+
+    this.progressBar.setAttribute(
+      "aria-valuenow",
+      data.progress
+    );
+  }
+}
+
+
+showXPNotification(amount) {
+  if (
+    !this.xpNotification ||
+    amount <= 0
+  ) {
+    return;
+  }
+
+  this.xpNotification.textContent =
+    `+${amount} XP`;
+
+  this.xpNotification.classList.remove(
+    "hidden"
+  );
+
+  this.xpNotification.classList.remove(
+    "xp-show"
+  );
+
+  void this.xpNotification.offsetWidth;
+
+  this.xpNotification.classList.add(
+    "xp-show"
+  );
+
+  clearTimeout(
+    this.xpNotificationTimer
+  );
+
+  this.xpNotificationTimer =
+    setTimeout(() => {
+      this.xpNotification.classList.remove(
+        "xp-show"
+      );
+
+      this.xpNotification.classList.add(
+        "hidden"
+      );
+    }, 1600);
+}
+
+
+showLevelUp(level) {
+  if (
+    !this.progression ||
+    !level
+  ) {
+    return;
+  }
+
+  const notification =
+    document.createElement(
+      "div"
     );
 
-    this.setCheckEnabled(false);
-    this.setNextEnabled(false);
-    this.setRestartEnabled(true);
+  notification.className =
+    "level-up-notification";
 
-    this.disableSpeedOptions();
-    this.disableSequenceOptions();
+  notification.innerHTML = `
+    <span class="level-up-icon">
+      🎉
+    </span>
 
-    this.setSequenceProgress(0, 0);
-    this.setTimer(0);
+    <div>
+      <strong>Novo nível!</strong>
+      <span>
+        Nível ${level.level}
+        — ${level.name}
+      </span>
+    </div>
+  `;
 
-    this.showSpeedPreview();
+  document.body.appendChild(
+    notification
+  );
+
+  requestAnimationFrame(() => {
+    notification.classList.add(
+      "level-up-show"
+    );
+  });
+
+  setTimeout(() => {
+    notification.classList.remove(
+      "level-up-show"
+    );
+
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }, 3000);
+}
+
+updateAdvancedStatistics(data) {
+  if (!data) {
+    return;
+  }
+
+  const fields = {
+    accuracyStat:
+      `${data.accuracy}%`,
+
+    averageScoreStat:
+      data.averageScore,
+
+    highScoreStat:
+      data.highScore,
+
+    bestStreakStat:
+      data.bestStreak,
+
+    gamesStat:
+      data.games,
+
+    correctStat:
+      data.correct
+  };
+
+  Object.entries(fields)
+    .forEach(
+      ([id, value]) => {
+        const element =
+          document.getElementById(id);
+
+        if (element) {
+          element.textContent =
+            value;
+        }
+      }
+    );
+}
+
+
+renderModeStatistics(
+  modeStats
+) {
+  const container =
+    document.querySelector(
+      "#modeStatistics"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const modes = [
+    {
+      id: "match",
+      name: "Combinação",
+      icon: "🎨"
+    },
+    {
+      id: "speed",
+      name: "Relâmpago",
+      icon: "⚡"
+    },
+    {
+      id: "sequence",
+      name: "Sequência",
+      icon: "🧠"
+    }
+  ];
+
+  container.innerHTML =
+    modes.map(mode => {
+      const data =
+        modeStats[mode.id] || {
+          games: 0,
+          averageScore: 0,
+          bestScore: 0
+        };
+
+      return `
+        <article class="performance-card">
+
+          <div class="performance-card-header">
+            <strong>
+              ${mode.icon}
+              ${mode.name}
+            </strong>
+
+            <span>
+              ${data.games} partidas
+            </span>
+          </div>
+
+          <div class="performance-values">
+
+            <div class="performance-value">
+              <span>
+                Média
+              </span>
+
+              <strong>
+                ${data.averageScore}
+              </strong>
+            </div>
+
+            <div class="performance-value">
+              <span>
+                Melhor
+              </span>
+
+              <strong>
+                ${data.bestScore}
+              </strong>
+            </div>
+
+          </div>
+
+        </article>
+      `;
+    }).join("");
+}
+
+
+renderHistory(history) {
+  const container =
+    document.querySelector(
+      "#gameHistory"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  if (!history.length) {
+    container.innerHTML = `
+      <div class="history-empty">
+        Nenhuma partida registrada ainda.
+      </div>
+    `;
+
+    return;
+  }
+
+  const modeNames = {
+    match: "Combinação",
+    speed: "Relâmpago",
+    sequence: "Sequência"
+  };
+
+  const difficultyNames = {
+    easy: "Fácil",
+    medium: "Médio",
+    hard: "Difícil"
+  };
+
+  container.innerHTML =
+    history.map(game => {
+      const success =
+        game.score > 0;
+
+      return `
+        <article class="history-item">
+
+          <div
+            class="history-result
+            ${success
+              ? "success"
+              : "failure"}"
+          >
+            ${success ? "✓" : "×"}
+          </div>
+
+          <div class="history-info">
+
+            <strong>
+              ${modeNames[game.mode]
+                || game.mode}
+              ·
+              ${difficultyNames[
+                game.difficulty
+              ] || game.difficulty}
+            </strong>
+
+            <span>
+              ${formatDate(
+                game.date
+              )}
+              ·
+              ${game.round} rodadas
+            </span>
+
+          </div>
+
+          <strong class="history-score">
+            ${game.score} pts
+          </strong>
+
+        </article>
+      `;
+    }).join("");
   }
 }

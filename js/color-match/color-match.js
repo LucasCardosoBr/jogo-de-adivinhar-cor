@@ -4,6 +4,19 @@ import {
 } from "./color-utils.js";
 
 import {
+  getHistory,
+  addHistoryEntry,
+  resetHistory
+} from "../storage.js";
+
+import {
+  calculateAccuracy,
+  calculateAverageScore,
+  getModeStats,
+  formatDate
+} from "./statistics.js";
+
+import {
   createMatchRound,
   createSpeedRound,
   createSequenceRound,
@@ -21,13 +34,30 @@ import {
   isSoundEnabled,
   setSoundEnabled,
   getStats,
-  updateStats
+  updateStats as saveStats
 } from "../storage.js";
 
 import { playSound } from "../audio.js";
 
+import {
+  getAchievementList,
+  getUnlockedAchievements,
+  checkAchievements,
+  getAchievement
+} from "./achievements.js";
+
+
 const ui = new ColorMatchUI();
+
 let stats = getStats();
+
+let progression =
+  getProgression();
+
+let previousLevel =
+  getLevelFromXP(
+    progression.xp
+  );
 
 let score = 0;
 let streak = 0;
@@ -37,15 +67,58 @@ let round = 1;
 let currentRound = null;
 let timer = null;
 let locked = false;
+
 let sequenceAnswer = [];
 
-function sound(type) {
-  playSound(type, isSoundEnabled());
+function updateAdvancedStatistics() {
+  const accuracy =
+    calculateAccuracy(
+      stats.correct,
+      stats.attempts
+    );
+
+  const averageScore =
+    calculateAverageScore(
+      stats.totalScore,
+      stats.attempts
+    );
+
+  ui.updateAdvancedStatistics({
+    accuracy,
+    averageScore,
+    highScore: stats.highScore,
+    bestStreak: stats.bestStreak,
+    games: stats.games,
+    correct: stats.correct
+  });
 }
 
-function getDifficultySettings() {
-  return getSettings(ui.getDifficulty());
+/* ================================
+   SOM
+================================ */
+
+function sound(type) {
+  playSound(
+    type,
+    isSoundEnabled()
+  );
 }
+
+
+/* ================================
+   CONFIGURAÇÕES
+================================ */
+
+function getDifficultySettings() {
+  return getSettings(
+    ui.getDifficulty()
+  );
+}
+
+
+/* ================================
+   TIMER
+================================ */
 
 function clearGameTimer() {
   if (timer) {
@@ -53,6 +126,132 @@ function clearGameTimer() {
     timer = null;
   }
 }
+
+function runRoundTimer(duration, onFinish) {
+  let time = duration;
+
+  ui.setTimer(time);
+
+  timer = setInterval(() => {
+    time = Math.max(
+      0,
+      time - 0.1
+    );
+
+    ui.setTimer(time);
+
+    if (time <= 0) {
+      clearGameTimer();
+      onFinish();
+    }
+  }, 100);
+}
+
+
+/* ================================
+   CONQUISTAS
+================================ */
+
+function updateAchievements() {
+  const newAchievements =
+    checkAchievements(
+      stats,
+      streak
+    );
+
+  newAchievements.forEach(id => {
+    const achievement =
+      getAchievement(id);
+
+    if (achievement) {
+      ui.showAchievementNotification(
+        achievement
+      );
+    }
+  });
+
+  ui.renderAchievements(
+    getAchievementList(),
+    getUnlockedAchievements()
+  );
+}
+
+
+/* ================================
+   ESTATÍSTICAS
+================================ */
+
+function saveGameStats() {
+  stats = saveStats({
+    ...stats
+  });
+}
+
+function updatePlayerProgression(points) {
+  const correct =
+    points >= 500;
+
+  const xpGained =
+    calculateXP({
+      points,
+      streak,
+      correct
+    });
+
+  if (xpGained <= 0) {
+    ui.updateProgression(
+      getProgress(
+        progression.xp
+      )
+    );
+
+    return;
+  }
+
+  const oldLevel =
+    getLevelFromXP(
+      progression.xp
+    );
+
+  progression =
+    saveProgression({
+      xp:
+        progression.xp +
+        xpGained
+    });
+
+  const newLevel =
+    getLevelFromXP(
+      progression.xp
+    );
+
+  ui.updateProgression(
+    getProgress(
+      progression.xp
+    )
+  );
+
+  ui.showXPNotification(
+    xpGained
+  );
+
+  if (
+    newLevel.level >
+    oldLevel.level
+  ) {
+    ui.showLevelUp(
+      newLevel
+    );
+  }
+
+  previousLevel =
+    newLevel;
+}
+
+
+/* ================================
+   NOVO JOGO
+================================ */
 
 function startNewGame() {
   const settings =
@@ -63,10 +262,6 @@ function startNewGame() {
   round = 1;
   lives = settings.lives;
 
-  stats.games++;
-
-  updateStats(stats);
-
   ui.updateRecords(
     stats.highScore,
     stats.bestStreak
@@ -74,6 +269,11 @@ function startNewGame() {
 
   startRound();
 }
+
+
+/* ================================
+   RESET
+================================ */
 
 function resetGame() {
   const settings =
@@ -92,6 +292,11 @@ function resetGame() {
   startRound();
 }
 
+
+/* ================================
+   RODADA
+================================ */
+
 function startRound() {
   clearGameTimer();
 
@@ -100,18 +305,23 @@ function startRound() {
 
   ui.hideResult();
   ui.hideControls();
+
   ui.setCheckEnabled(false);
   ui.setNextEnabled(false);
+
   ui.resetSliders();
   ui.clearSequencePreview();
+
   ui.setTargetAreaVisible(true);
 
   const mode = ui.getMode();
 
   if (mode === "match") {
     startMatchRound();
+
   } else if (mode === "speed") {
     startSpeedRound();
+
   } else {
     startSequenceRound();
   }
@@ -124,34 +334,38 @@ function startRound() {
   );
 }
 
-function startMatchRound() {
-  currentRound = createMatchRound();
 
-  const settings = getDifficultySettings();
-  let time = settings.time;
+/* ================================
+   MODO COMBINAÇÃO
+================================ */
+
+function startMatchRound() {
+  currentRound =
+    createMatchRound();
+
+  const settings =
+    getDifficultySettings();
 
   ui.showTarget(
     hsl(currentRound.target),
     "Memorize esta cor!"
   );
 
-  ui.setTimer(time);
-
-  timer = setInterval(() => {
-    time = Math.max(0, time - 0.1);
-
-    ui.setTimer(time);
-
-    if (time <= 0) {
-      clearGameTimer();
-      finishMatchMemory();
-    }
-  }, 100);
+  runRoundTimer(
+    settings.time,
+    finishMatchMemory
+  );
 }
 
 function finishMatchMemory() {
-  ui.hideTarget("Agora recrie a cor!");
-  ui.showModeControls("match");
+  ui.hideTarget(
+    "Agora recrie a cor!"
+  );
+
+  ui.showModeControls(
+    "match"
+  );
+
   ui.setCheckEnabled(true);
 
   updatePreview();
@@ -161,7 +375,9 @@ function finishMatchMemory() {
 
 function updatePreview() {
   if (!locked) {
-    ui.updatePreview(hsl(ui.getGuess()));
+    ui.updatePreview(
+      hsl(ui.getGuess())
+    );
   }
 }
 
@@ -171,14 +387,17 @@ function checkMatch() {
   }
 
   locked = true;
+
   ui.setCheckEnabled(false);
 
-  const guess = ui.getGuess();
+  const guess =
+    ui.getGuess();
 
-  const points = calculateScore(
-    currentRound.target,
-    guess
-  );
+  const points =
+    calculateScore(
+      currentRound.target,
+      guess
+    );
 
   processScore(points);
 
@@ -198,11 +417,17 @@ function checkMatch() {
   finishAttempt();
 }
 
-function startSpeedRound() {
-  currentRound = createSpeedRound();
 
-  const settings = getDifficultySettings();
-  let time = settings.time;
+/* ================================
+   MODO RELÂMPAGO
+================================ */
+
+function startSpeedRound() {
+  currentRound =
+    createSpeedRound();
+
+  const settings =
+    getDifficultySettings();
 
   ui.showTarget(
     hsl(currentRound.target),
@@ -210,23 +435,22 @@ function startSpeedRound() {
   );
 
   ui.showSpeedPreview();
-  ui.setTimer(time);
 
-  timer = setInterval(() => {
-    time = Math.max(0, time - 0.1);
-
-    ui.setTimer(time);
-
-    if (time <= 0) {
-      clearGameTimer();
-      finishSpeedMemory();
-    }
-  }, 100);
+  runRoundTimer(
+    settings.time,
+    finishSpeedMemory
+  );
 }
 
 function finishSpeedMemory() {
-  ui.hideTarget("Qual era a cor?");
-  ui.showModeControls("speed");
+  ui.hideTarget(
+    "Qual era a cor?"
+  );
+
+  ui.showModeControls(
+    "speed"
+  );
+
   ui.hideSpeedPreview();
 
   ui.setSpeedOptions(
@@ -244,14 +468,18 @@ function checkSpeed(index) {
   }
 
   locked = true;
+
   ui.disableSpeedOptions();
 
-  const selectedIndex = Number(index);
+  const selectedIndex =
+    Number(index);
 
   const correct =
-    selectedIndex === currentRound.correctIndex;
+    selectedIndex ===
+    currentRound.correctIndex;
 
-  const points = correct ? 1000 : 0;
+  const points =
+    correct ? 1000 : 0;
 
   processScore(points);
 
@@ -261,15 +489,19 @@ function checkSpeed(index) {
       : "error"
   );
 
-  const correctColor = hsl(
-    currentRound.options[
-      currentRound.correctIndex
-    ]
-  );
+  const correctColor =
+    hsl(
+      currentRound.options[
+        currentRound.correctIndex
+      ]
+    );
 
-  const selectedColor = hsl(
-    currentRound.options[selectedIndex]
-  );
+  const selectedColor =
+    hsl(
+      currentRound.options[
+        selectedIndex
+      ]
+    );
 
   ui.showResult(
     correctColor,
@@ -283,10 +515,16 @@ function checkSpeed(index) {
   finishAttempt();
 }
 
+
+/* ================================
+   MODO SEQUÊNCIA
+================================ */
+
 function startSequenceRound() {
-  currentRound = createSequenceRound(
-    ui.getDifficulty()
-  );
+  currentRound =
+    createSequenceRound(
+      ui.getDifficulty()
+    );
 
   sequenceAnswer = [];
 
@@ -301,35 +539,31 @@ function startSequenceRound() {
     "Observe a sequência de cores."
   );
 
-  ui.showModeControls("sequence");
+  ui.showModeControls(
+    "sequence"
+  );
 
   showSequence();
 }
 
 function showSequence() {
-  const colors = currentRound.sequence.map(
-    index => hsl(
-      currentRound.palette[index]
-    )
-  );
+  const colors =
+    currentRound.sequence.map(
+      index =>
+        hsl(
+          currentRound.palette[index]
+        )
+    );
 
   ui.setSequencePreview(colors);
 
-  const settings = getDifficultySettings();
-  let time = settings.time;
+  const settings =
+    getDifficultySettings();
 
-  ui.setTimer(time);
-
-  timer = setInterval(() => {
-    time = Math.max(0, time - 0.1);
-
-    ui.setTimer(time);
-
-    if (time <= 0) {
-      clearGameTimer();
-      finishSequenceMemory();
-    }
-  }, 100);
+  runRoundTimer(
+    settings.time,
+    finishSequenceMemory
+  );
 }
 
 function finishSequenceMemory() {
@@ -358,12 +592,18 @@ function selectSequenceColor(index) {
     return;
   }
 
-  const selectedIndex = Number(index);
+  const selectedIndex =
+    Number(index);
 
-  sequenceAnswer.push(selectedIndex);
+  sequenceAnswer.push(
+    selectedIndex
+  );
 
-  const current = sequenceAnswer.length;
-  const total = currentRound.sequence.length;
+  const current =
+    sequenceAnswer.length;
+
+  const total =
+    currentRound.sequence.length;
 
   ui.setSequenceProgress(
     current,
@@ -388,7 +628,8 @@ function finishSequence(correct) {
 
   ui.disableSequenceOptions();
 
-  const points = correct ? 1000 : 0;
+  const points =
+    correct ? 1000 : 0;
 
   processScore(points);
 
@@ -398,18 +639,22 @@ function finishSequence(correct) {
       : "error"
   );
 
-  const firstColor = hsl(
-    currentRound.palette[
-      currentRound.sequence[0]
-    ]
-  );
+  const firstColor =
+    hsl(
+      currentRound.palette[
+        currentRound.sequence[0]
+      ]
+    );
 
   const selectedIndex =
     sequenceAnswer.at(-1) ?? 0;
 
-  const selectedColor = hsl(
-    currentRound.palette[selectedIndex]
-  );
+  const selectedColor =
+    hsl(
+      currentRound.palette[
+        selectedIndex
+      ]
+    );
 
   ui.showResult(
     firstColor,
@@ -422,6 +667,11 @@ function finishSequence(correct) {
 
   finishAttempt();
 }
+
+
+/* ================================
+   FEEDBACK DA RESPOSTA
+================================ */
 
 function showAnswerFeedback(correct) {
   const card =
@@ -452,10 +702,16 @@ function showAnswerFeedback(correct) {
   }, 500);
 }
 
+
+/* ================================
+   PONTUAÇÃO
+================================ */
+
 function processScore(points) {
   score += points;
 
-  const correct = points >= 500;
+  const correct =
+    points >= 500;
 
   if (correct) {
     streak++;
@@ -473,32 +729,47 @@ function processScore(points) {
     stats.correct++;
   }
 
-  stats.highScore = Math.max(
-    stats.highScore,
-    score
-  );
+  stats.totalScore += points;
 
-  stats.bestStreak = Math.max(
-    stats.bestStreak,
-    streak
-  );
+  stats.highScore =
+    Math.max(
+      stats.highScore,
+      score
+    );
 
-  updateStats(stats);
+  stats.bestStreak =
+    Math.max(
+      stats.bestStreak,
+      streak
+    );
 
-  ui.updateStats(
-    score,
-    streak,
-    lives,
-    round
-  );
+  saveGameStats();
 
-  ui.updateRecords(
-    stats.highScore,
-    stats.bestStreak
-  );
+ui.updateStats(
+  score,
+  streak,
+  lives,
+  round
+);
 
-  showAnswerFeedback(correct);
+updatePlayerProgression(
+  points
+);
+
+ui.updateRecords(
+  stats.highScore,
+  stats.bestStreak
+);
+
+showAnswerFeedback(correct);
+
+updateAchievements();
 }
+
+
+/* ================================
+   FINAL DA TENTATIVA
+================================ */
 
 function finishAttempt() {
   if (lives <= 0) {
@@ -509,14 +780,25 @@ function finishAttempt() {
   ui.setNextEnabled(true);
 }
 
+
+/* ================================
+   PRÓXIMA RODADA
+================================ */
+
 function nextRound() {
   if (lives <= 0) {
     return;
   }
 
   round++;
+
   startRound();
 }
+
+
+/* ================================
+   REINICIAR
+================================ */
 
 function restartGame() {
   clearGameTimer();
@@ -526,21 +808,48 @@ function restartGame() {
   startNewGame();
 }
 
-ui.restartButton.addEventListener(
-  "click",
-  restartGame
-);
+
+/* ================================
+   FIM DE JOGO
+================================ */
 
 function endGame() {
   clearGameTimer();
 
   locked = true;
 
+  
+saveGameStats();
+
+addHistoryEntry({
+  date: Date.now(),
+
+  score,
+
+  round,
+
+  mode:
+    ui.getMode(),
+
+  difficulty:
+    ui.getDifficulty(),
+
+  streak,
+
+  lives: 0
+});
+
+refreshAdvancedStatistics();
+
+updateAchievements();
+
   sound("error");
 
   ui.hideControls();
+
   ui.setCheckEnabled(false);
   ui.setNextEnabled(false);
+
   ui.setTargetAreaVisible(true);
 
   ui.showEndGame(
@@ -552,15 +861,27 @@ function endGame() {
     `Fim de jogo! Pontuação: ${score}`;
 }
 
+
+/* ================================
+   CONFIGURAÇÕES
+================================ */
+
 function changeDifficulty() {
   clearGameTimer();
+
   resetGame();
 }
 
 function changeMode() {
   clearGameTimer();
+
   resetGame();
 }
+
+
+/* ================================
+   MENSAGENS
+================================ */
 
 function getResultMessage(points) {
   if (points === 1000) {
@@ -590,6 +911,11 @@ function getResultMessage(points) {
   return "Você ficou bem longe da resposta.";
 }
 
+
+/* ================================
+   SOM
+================================ */
+
 function updateSoundButton() {
   ui.setSoundButton(
     isSoundEnabled()
@@ -597,7 +923,8 @@ function updateSoundButton() {
 }
 
 function toggleSound() {
-  const enabled = isSoundEnabled();
+  const enabled =
+    isSoundEnabled();
 
   setSoundEnabled(!enabled);
 
@@ -607,6 +934,11 @@ function toggleSound() {
     sound("success");
   }
 }
+
+
+/* ================================
+   EVENTOS
+================================ */
 
 ui.hue.addEventListener(
   "input",
@@ -639,6 +971,11 @@ ui.nextButton.addEventListener(
   nextRound
 );
 
+ui.restartButton.addEventListener(
+  "click",
+  restartGame
+);
+
 ui.difficulty.addEventListener(
   "change",
   changeDifficulty
@@ -657,7 +994,8 @@ ui.soundButton.addEventListener(
 ui.themeButton.addEventListener(
   "click",
   () => {
-    const theme = toggleTheme();
+    const theme =
+      toggleTheme();
 
     ui.setThemeButton(
       theme === "dark"
@@ -667,14 +1005,25 @@ ui.themeButton.addEventListener(
   }
 );
 
+
+/* ================================
+   BOTÕES DE CORES
+================================ */
+
 ui.speedOptions
   .querySelectorAll(".color-option")
   .forEach(button => {
     button.addEventListener(
       "click",
-      () => checkSpeed(
-        button.dataset.index
-      )
+      () => {
+        button.classList.add(
+          "selected"
+        );
+
+        checkSpeed(
+          button.dataset.index
+        );
+      }
     );
   });
 
@@ -683,20 +1032,107 @@ ui.sequenceOptions
   .forEach(button => {
     button.addEventListener(
       "click",
-      () => selectSequenceColor(
-        button.dataset.index
-      )
+      () => {
+        button.classList.add(
+          "selected"
+        );
+
+        selectSequenceColor(
+          button.dataset.index
+        );
+      }
     );
   });
+
+
+/* ================================
+   INICIALIZAÇÃO
+================================ */
 
 applySavedTheme();
 
 updateSoundButton();
+
 ui.updateValues();
 
 ui.updateRecords(
   stats.highScore,
   stats.bestStreak
 );
+
+ui.renderAchievements(
+  getAchievementList(),
+  getUnlockedAchievements()
+);
+
+ui.updateProgression(
+  getProgress(
+    progression.xp
+  )
+);
+
+import {
+  getProgress,
+  getLevelFromXP,
+  calculateXP
+} from "./progression.js";
+
+import {
+  getProgression,
+  updateProgression as saveProgression
+} from "../storage.js";
+
+function refreshAdvancedStatistics() {
+  updateAdvancedStatistics();
+
+  const history =
+    getHistory();
+
+  const modeStats = {
+    match:
+      getModeStats(
+        history,
+        "match"
+      ),
+
+    speed:
+      getModeStats(
+        history,
+        "speed"
+      ),
+
+    sequence:
+      getModeStats(
+        history,
+        "sequence"
+      )
+  };
+
+  ui.renderModeStatistics(
+    modeStats
+  );
+
+  ui.renderHistory(
+    history
+  );
+}
+
+const clearHistoryButton =
+  document.querySelector(
+    "#clearHistoryButton"
+  );
+
+if (clearHistoryButton) {
+  clearHistoryButton.addEventListener(
+    "click",
+    () => {
+      resetHistory();
+
+      refreshAdvancedStatistics();
+    }
+  );
+}
+
+refreshAdvancedStatistics();
 
 startNewGame();
