@@ -69,7 +69,6 @@ let lives = 5;
 let round = 1;
 
 let currentRound = null;
-let timer = null;
 let locked = false;
 
 let sequenceAnswer = [];
