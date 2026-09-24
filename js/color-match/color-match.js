@@ -6,14 +6,19 @@ import {
 import {
   getHistory,
   addHistoryEntry,
-  resetHistory
+  resetHistory,
+  isSoundEnabled,
+  setSoundEnabled,
+  getStats,
+  updateStats as saveStats,
+  getProgression,
+  updateProgression as saveProgression
 } from "../storage.js";
 
 import {
   calculateAccuracy,
   calculateAverageScore,
-  getModeStats,
-  formatDate
+  getModeStats
 } from "./statistics.js";
 
 import {
@@ -30,14 +35,18 @@ import {
   toggleTheme
 } from "./theme.js";
 
-import {
-  isSoundEnabled,
-  setSoundEnabled,
-  getStats,
-  updateStats as saveStats
-} from "../storage.js";
-
 import { playSound } from "../audio.js";
+
+import {
+  getProgress,
+  getLevelFromXP,
+  calculateXP
+} from "./progression.js";
+
+import {
+  clearGameTimer,
+  startTimer
+} from "./game-timer.js";
 
 import {
   getAchievementList,
@@ -53,11 +62,6 @@ let stats = getStats();
 
 let progression =
   getProgression();
-
-let previousLevel =
-  getLevelFromXP(
-    progression.xp
-  );
 
 let score = 0;
 let streak = 0;
@@ -120,31 +124,12 @@ function getDifficultySettings() {
    TIMER
 ================================ */
 
-function clearGameTimer() {
-  if (timer) {
-    clearInterval(timer);
-    timer = null;
-  }
-}
-
 function runRoundTimer(duration, onFinish) {
-  let time = duration;
-
-  ui.setTimer(time);
-
-  timer = setInterval(() => {
-    time = Math.max(
-      0,
-      time - 0.1
-    );
-
-    ui.setTimer(time);
-
-    if (time <= 0) {
-      clearGameTimer();
-      onFinish();
-    }
-  }, 100);
+  startTimer(
+    duration,
+    time => ui.setTimer(time),
+    onFinish
+  );
 }
 
 
@@ -244,8 +229,6 @@ function updatePlayerProgression(points) {
     );
   }
 
-  previousLevel =
-    newLevel;
 }
 
 
@@ -1070,17 +1053,6 @@ ui.updateProgression(
     progression.xp
   )
 );
-
-import {
-  getProgress,
-  getLevelFromXP,
-  calculateXP
-} from "./progression.js";
-
-import {
-  getProgression,
-  updateProgression as saveProgression
-} from "../storage.js";
 
 function refreshAdvancedStatistics() {
   updateAdvancedStatistics();
