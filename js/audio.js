@@ -36,11 +36,29 @@ function getAudioContext() {
   return audioContext;
 }
 
+function normalizeVolume(volume) {
+  const value = Number(volume);
+
+  if (!Number.isFinite(value)) {
+    return 100;
+  }
+
+  return Math.min(100, Math.max(0, value));
+}
+
 export function playSound(
   type,
-  enabled = true
+  enabled = true,
+  volume = 100
 ) {
   if (!enabled) {
+    return;
+  }
+
+  const masterVolume =
+    normalizeVolume(volume) / 100;
+
+  if (masterVolume <= 0) {
     return;
   }
 
@@ -68,6 +86,9 @@ export function playSound(
     const now =
       context.currentTime;
 
+    const finalVolume =
+      sound.volume * masterVolume;
+
     oscillator.connect(gain);
     gain.connect(
       context.destination
@@ -86,7 +107,7 @@ export function playSound(
     );
 
     gain.gain.linearRampToValueAtTime(
-      sound.volume,
+      finalVolume,
       now + 0.05
     );
 
@@ -96,10 +117,27 @@ export function playSound(
     );
 
     oscillator.start(now);
+
     oscillator.stop(
       now + sound.duration
     );
   } catch {
     // Áudio indisponível.
   }
+}
+
+export function stopAudio() {
+  if (!audioContext) {
+    return;
+  }
+
+  try {
+    if (audioContext.state !== "closed") {
+      audioContext.close();
+    }
+  } catch {
+    // Áudio indisponível.
+  }
+
+  audioContext = null;
 }

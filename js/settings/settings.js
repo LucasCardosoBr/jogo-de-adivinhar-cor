@@ -28,16 +28,38 @@ const DEFAULT_SETTINGS = {
   defaultDifficulty: "easy"
 };
 
+const VALID_THEMES = ["light", "dark", "auto"];
+const VALID_ANIMATIONS = ["full", "reduced", "none"];
+const VALID_FONT_SIZES = ["normal", "large", "xlarge"];
+const VALID_MODES = ["match", "speed", "sequence"];
+const VALID_DIFFICULTIES = ["easy", "medium", "hard"];
+
 export function getSettings() {
   return {
-    theme: getTheme(),
-    volume: getVolume(),
-    sound: isSoundEnabled(),
-    animations: getAnimations(),
-    highContrast: isHighContrastEnabled(),
-    fontSize: getFontSize(),
-    defaultMode: getDefaultMode(),
-    defaultDifficulty: getDefaultDifficulty()
+    theme: normalizeValue(getTheme(), VALID_THEMES, DEFAULT_SETTINGS.theme),
+    volume: normalizeVolume(getVolume()),
+    sound: Boolean(isSoundEnabled()),
+    animations: normalizeValue(
+      getAnimations(),
+      VALID_ANIMATIONS,
+      DEFAULT_SETTINGS.animations
+    ),
+    highContrast: Boolean(isHighContrastEnabled()),
+    fontSize: normalizeValue(
+      getFontSize(),
+      VALID_FONT_SIZES,
+      DEFAULT_SETTINGS.fontSize
+    ),
+    defaultMode: normalizeValue(
+      getDefaultMode(),
+      VALID_MODES,
+      DEFAULT_SETTINGS.defaultMode
+    ),
+    defaultDifficulty: normalizeValue(
+      getDefaultDifficulty(),
+      VALID_DIFFICULTIES,
+      DEFAULT_SETTINGS.defaultDifficulty
+    )
   };
 }
 
@@ -49,16 +71,16 @@ export function saveSettings(settings = {}) {
     ...settings
   };
 
-  saveTheme(updated.theme);
-  setVolume(updated.volume);
-  setSoundEnabled(updated.sound);
-  setAnimations(updated.animations);
-  setHighContrast(updated.highContrast);
-  setFontSize(updated.fontSize);
-  setDefaultMode(updated.defaultMode);
-  setDefaultDifficulty(
-    updated.defaultDifficulty
-  );
+  const normalized = normalizeSettings(updated);
+
+  saveTheme(normalized.theme);
+  setVolume(normalized.volume);
+  setSoundEnabled(normalized.sound);
+  setAnimations(normalized.animations);
+  setHighContrast(normalized.highContrast);
+  setFontSize(normalized.fontSize);
+  setDefaultMode(normalized.defaultMode);
+  setDefaultDifficulty(normalized.defaultDifficulty);
 
   applySettings();
 
@@ -66,28 +88,7 @@ export function saveSettings(settings = {}) {
 }
 
 export function resetSettings() {
-  saveTheme(DEFAULT_SETTINGS.theme);
-  setVolume(DEFAULT_SETTINGS.volume);
-  setSoundEnabled(DEFAULT_SETTINGS.sound);
-  setAnimations(
-    DEFAULT_SETTINGS.animations
-  );
-  setHighContrast(
-    DEFAULT_SETTINGS.highContrast
-  );
-  setFontSize(
-    DEFAULT_SETTINGS.fontSize
-  );
-  setDefaultMode(
-    DEFAULT_SETTINGS.defaultMode
-  );
-  setDefaultDifficulty(
-    DEFAULT_SETTINGS.defaultDifficulty
-  );
-
-  applySettings();
-
-  return getSettings();
+  return saveSettings(DEFAULT_SETTINGS);
 }
 
 export function applySettings() {
@@ -101,8 +102,7 @@ export function applySettings() {
 }
 
 function applyTheme(theme) {
-  const root =
-    document.documentElement;
+  const root = document.documentElement;
 
   if (theme === "dark") {
     root.dataset.theme = "dark";
@@ -114,39 +114,120 @@ function applyTheme(theme) {
     return;
   }
 
-  root.dataset.theme =
-    window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches
-      ? "dark"
-      : "light";
+  applySystemTheme();
+}
+
+function applySystemTheme() {
+  const root = document.documentElement;
+
+  const prefersDark = window.matchMedia(
+    "(prefers-color-scheme: dark)"
+  ).matches;
+
+  root.dataset.theme = prefersDark ? "dark" : "light";
 }
 
 function applyAnimations(mode) {
-  const root =
-    document.documentElement;
+  const root = document.documentElement;
 
   root.dataset.animations = mode;
 }
 
 function applyAccessibility(settings) {
-  const root =
-    document.documentElement;
+  const root = document.documentElement;
 
-  root.dataset.contrast =
-    settings.highContrast
-      ? "high"
-      : "normal";
+  root.dataset.contrast = settings.highContrast
+    ? "high"
+    : "normal";
 
-  root.dataset.fontSize =
-    settings.fontSize;
+  root.dataset.fontSize = settings.fontSize;
 }
 
-export function updateSetting(
-  name,
-  value
-) {
+function normalizeSettings(settings) {
+  return {
+    theme: normalizeValue(
+      settings.theme,
+      VALID_THEMES,
+      DEFAULT_SETTINGS.theme
+    ),
+
+    volume: normalizeVolume(settings.volume),
+
+    sound: Boolean(settings.sound),
+
+    animations: normalizeValue(
+      settings.animations,
+      VALID_ANIMATIONS,
+      DEFAULT_SETTINGS.animations
+    ),
+
+    highContrast: Boolean(settings.highContrast),
+
+    fontSize: normalizeValue(
+      settings.fontSize,
+      VALID_FONT_SIZES,
+      DEFAULT_SETTINGS.fontSize
+    ),
+
+    defaultMode: normalizeValue(
+      settings.defaultMode,
+      VALID_MODES,
+      DEFAULT_SETTINGS.defaultMode
+    ),
+
+    defaultDifficulty: normalizeValue(
+      settings.defaultDifficulty,
+      VALID_DIFFICULTIES,
+      DEFAULT_SETTINGS.defaultDifficulty
+    )
+  };
+}
+
+function normalizeValue(value, validValues, fallback) {
+  return validValues.includes(value) ? value : fallback;
+}
+
+function normalizeVolume(value) {
+  const volume = Number(value);
+
+  if (!Number.isFinite(volume)) {
+    return DEFAULT_SETTINGS.volume;
+  }
+
+  return Math.min(100, Math.max(0, volume));
+}
+
+export function updateSetting(name, value) {
   return saveSettings({
     [name]: value
   });
+}
+
+export function getDefaultSettings() {
+  return { ...DEFAULT_SETTINGS };
+}
+
+export function initializeSettings() {
+  applySettings();
+
+  const mediaQuery = window.matchMedia(
+    "(prefers-color-scheme: dark)"
+  );
+
+  const handleSystemThemeChange = () => {
+    if (getSettings().theme === "auto") {
+      applySystemTheme();
+    }
+  };
+
+  if (mediaQuery.addEventListener) {
+    mediaQuery.addEventListener(
+      "change",
+      handleSystemThemeChange
+    );
+  } else {
+    mediaQuery.addListener(handleSystemThemeChange);
+  }
+
+  return getSettings();
 }

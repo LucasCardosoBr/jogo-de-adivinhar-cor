@@ -211,6 +211,9 @@ export class ColorMatchUI {
     this.gameHistory =
       document.getElementById("gameHistory");
 
+    this.historyList =
+      document.getElementById("historyList");
+
     this.achievementNotificationTimer =
       null;
 
@@ -224,11 +227,11 @@ export class ColorMatchUI {
   ================================= */
 
   getMode() {
-    return this.gameMode.value;
+    return this.gameMode?.value || "match";
   }
 
   getDifficulty() {
-    return this.difficulty.value;
+    return this.difficulty?.value || "easy";
   }
 
 
@@ -236,40 +239,44 @@ export class ColorMatchUI {
      ESTATÍSTICAS
   ================================= */
 
-  updateStats(
-    score,
-    streak,
-    lives,
-    round
-  ) {
-    this.score.textContent = score;
-    this.streak.textContent = streak;
-    this.lives.textContent = lives;
-    this.round.textContent = round;
+  updateStats(score, streak, lives, round) {
+    if (this.score) {
+      this.score.textContent = score;
+      this.animateValue(this.score);
+    }
 
-    this.animateValue(this.score);
-    this.animateValue(this.streak);
+    if (this.streak) {
+      this.streak.textContent = streak;
+      this.animateValue(this.streak);
 
-    this.streak.classList.toggle(
-      "streak-active",
-      streak >= 3
-    );
+      this.streak.classList.toggle(
+        "streak-active",
+        streak >= 3
+      );
+    }
 
-    this.lives.classList.toggle(
-      "lives-danger",
-      lives <= 1
-    );
+    if (this.lives) {
+      this.lives.textContent = lives;
+
+      this.lives.classList.toggle(
+        "lives-danger",
+        lives <= 1
+      );
+    }
+
+    if (this.round) {
+      this.round.textContent = round;
+    }
   }
 
-  updateRecords(
-    highScore,
-    bestStreak
-  ) {
-    this.highScore.textContent =
-      highScore;
+  updateRecords(highScore, bestStreak) {
+    if (this.highScore) {
+      this.highScore.textContent = highScore;
+    }
 
-    this.bestStreak.textContent =
-      bestStreak;
+    if (this.bestStreak) {
+      this.bestStreak.textContent = bestStreak;
+    }
   }
 
   animateValue(element) {
@@ -277,15 +284,11 @@ export class ColorMatchUI {
       return;
     }
 
-    element.classList.remove(
-      "stat-value-pop"
-    );
+    element.classList.remove("stat-value-pop");
 
     void element.offsetWidth;
 
-    element.classList.add(
-      "stat-value-pop"
-    );
+    element.classList.add("stat-value-pop");
   }
 
 
@@ -298,17 +301,19 @@ export class ColorMatchUI {
       return;
     }
 
+    const safeTime = Math.max(0, Number(time) || 0);
+
     this.timer.textContent =
-      `${Math.max(0, time).toFixed(1)}s`;
+      `${safeTime.toFixed(1)}s`;
 
     this.timer.classList.toggle(
       "timer-warning",
-      time <= 1.5 && time > 0.7
+      safeTime <= 1.5 && safeTime > 0.7
     );
 
     this.timer.classList.toggle(
       "timer-danger",
-      time <= 0.7
+      safeTime <= 0.7
     );
   }
 
@@ -317,37 +322,37 @@ export class ColorMatchUI {
      ALVO
   ================================= */
 
-  showTarget(
-  color,
-  message
-) {
-  this.setTargetAreaVisible(true);
+  showTarget(color, message) {
+    this.setTargetAreaVisible(true);
 
-  this.colorTarget.style.background =
-    color;
+    if (this.colorTarget) {
+      this.colorTarget.style.background = color;
 
-  this.targetMessage.textContent =
-    message;
+      this.colorTarget.classList.remove(
+        "hidden-color",
+        "target-reveal"
+      );
 
-  this.colorTarget.classList.remove(
-    "hidden-color",
-    "target-reveal"
-  );
+      void this.colorTarget.offsetWidth;
 
-  void this.colorTarget.offsetWidth;
+      this.colorTarget.classList.add(
+        "target-reveal"
+      );
+    }
 
-  this.colorTarget.classList.add(
-    "target-reveal"
-  );
-}
+    if (this.targetMessage) {
+      this.targetMessage.textContent = message;
+    }
+  }
 
   hideTarget(message) {
-    this.colorTarget.classList.add(
+    this.colorTarget?.classList.add(
       "hidden-color"
     );
 
-    this.targetMessage.textContent =
-      message;
+    if (this.targetMessage) {
+      this.targetMessage.textContent = message;
+    }
   }
 
   setTargetAreaVisible(visible) {
@@ -363,17 +368,9 @@ export class ColorMatchUI {
   ================================= */
 
   hideControls() {
-    this.matchControls?.classList.add(
-      "hidden"
-    );
-
-    this.speedControls?.classList.add(
-      "hidden"
-    );
-
-    this.sequenceControls?.classList.add(
-      "hidden"
-    );
+    this.matchControls?.classList.add("hidden");
+    this.speedControls?.classList.add("hidden");
+    this.sequenceControls?.classList.add("hidden");
   }
 
   showModeControls(mode) {
@@ -385,22 +382,18 @@ export class ColorMatchUI {
       sequence: this.sequenceControls
     };
 
-    controls[mode]?.classList.remove(
-      "hidden"
-    );
+    controls[mode]?.classList.remove("hidden");
   }
 
   setCheckEnabled(enabled) {
     if (this.checkButton) {
-      this.checkButton.disabled =
-        !enabled;
+      this.checkButton.disabled = !enabled;
     }
   }
 
   setNextEnabled(enabled) {
     if (this.nextButton) {
-      this.nextButton.disabled =
-        !enabled;
+      this.nextButton.disabled = !enabled;
     }
   }
 
@@ -411,29 +404,43 @@ export class ColorMatchUI {
 
   getGuess() {
     return {
-      h: Number(this.hue.value),
-      s: Number(this.saturation.value),
-      l: Number(this.lightness.value)
+      h: Number(this.hue?.value || 180),
+      s: Number(this.saturation?.value || 65),
+      l: Number(this.lightness?.value || 50)
     };
   }
 
   resetSliders() {
-    this.hue.value = 180;
-    this.saturation.value = 65;
-    this.lightness.value = 50;
+    if (this.hue) {
+      this.hue.value = 180;
+    }
+
+    if (this.saturation) {
+      this.saturation.value = 65;
+    }
+
+    if (this.lightness) {
+      this.lightness.value = 50;
+    }
 
     this.updateValues();
   }
 
   updateValues() {
-    this.hueValue.textContent =
-      this.hue.value;
+    if (this.hueValue && this.hue) {
+      this.hueValue.textContent =
+        this.hue.value;
+    }
 
-    this.saturationValue.textContent =
-      `${this.saturation.value}%`;
+    if (this.saturationValue && this.saturation) {
+      this.saturationValue.textContent =
+        `${this.saturation.value}%`;
+    }
 
-    this.lightnessValue.textContent =
-      `${this.lightness.value}%`;
+    if (this.lightnessValue && this.lightness) {
+      this.lightnessValue.textContent =
+        `${this.lightness.value}%`;
+    }
   }
 
   updatePreview(color) {
@@ -441,8 +448,7 @@ export class ColorMatchUI {
       return;
     }
 
-    this.colorPreview.style.background =
-      color;
+    this.colorPreview.style.background = color;
 
     this.colorPreview.classList.remove(
       "preview-update"
@@ -461,49 +467,42 @@ export class ColorMatchUI {
   ================================= */
 
   showSpeedPreview() {
-    this.speedPreview?.classList.remove(
-      "hidden"
-    );
+    this.speedPreview?.classList.remove("hidden");
   }
 
   hideSpeedPreview() {
-    this.speedPreview?.classList.add(
-      "hidden"
-    );
+    this.speedPreview?.classList.add("hidden");
   }
 
   setSpeedOptions(colors) {
-    const buttons =
-      this.speedOptions?.querySelectorAll(
-        ".color-option"
-      ) || [];
+    if (!this.speedOptions) {
+      return;
+    }
 
-    buttons.forEach(
-      (button, index) => {
-        button.disabled = false;
-        button.dataset.index = index;
+    this.speedOptions.innerHTML = "";
 
-        button.classList.remove(
-          "selected",
-          "correct-option",
-          "wrong-option"
-        );
+    colors.forEach((color, index) => {
+      const button =
+        document.createElement("button");
 
-        if (colors[index]) {
-          this.setColor(
-            button,
-            colors[index]
-          );
-        }
-      }
-    );
+      button.type = "button";
+      button.className = "color-option";
+      button.dataset.index = index;
+
+      button.setAttribute(
+        "aria-label",
+        `Escolher cor ${index + 1}`
+      );
+
+      this.setColor(button, color);
+
+      this.speedOptions.appendChild(button);
+    });
   }
 
   disableSpeedOptions() {
     this.speedOptions
-      ?.querySelectorAll(
-        ".color-option"
-      )
+      ?.querySelectorAll(".color-option")
       .forEach(button => {
         button.disabled = true;
       });
@@ -515,37 +514,34 @@ export class ColorMatchUI {
   ================================= */
 
   setSequenceOptions(colors) {
-    const buttons =
-      this.sequenceOptions?.querySelectorAll(
-        ".sequence-color"
-      ) || [];
+    if (!this.sequenceOptions) {
+      return;
+    }
 
-    buttons.forEach(
-      (button, index) => {
-        button.disabled = false;
-        button.dataset.index = index;
+    this.sequenceOptions.innerHTML = "";
 
-        button.classList.remove(
-          "selected",
-          "correct-option",
-          "wrong-option"
-        );
+    colors.forEach((color, index) => {
+      const button =
+        document.createElement("button");
 
-        if (colors[index]) {
-          this.setColor(
-            button,
-            colors[index]
-          );
-        }
-      }
-    );
+      button.type = "button";
+      button.className = "sequence-color";
+      button.dataset.index = index;
+
+      button.setAttribute(
+        "aria-label",
+        `Escolher cor ${index + 1}`
+      );
+
+      this.setColor(button, color);
+
+      this.sequenceOptions.appendChild(button);
+    });
   }
 
   disableSequenceOptions() {
     this.sequenceOptions
-      ?.querySelectorAll(
-        ".sequence-color"
-      )
+      ?.querySelectorAll(".sequence-color")
       .forEach(button => {
         button.disabled = true;
       });
@@ -567,9 +563,7 @@ export class ColorMatchUI {
 
       item.style.background = color;
 
-      this.sequencePreview.appendChild(
-        item
-      );
+      this.sequencePreview.appendChild(item);
     });
   }
 
@@ -579,10 +573,7 @@ export class ColorMatchUI {
     }
   }
 
-  setSequenceProgress(
-    current,
-    total
-  ) {
+  setSequenceProgress(current, total) {
     if (!this.sequenceProgress) {
       return;
     }
@@ -603,8 +594,7 @@ export class ColorMatchUI {
 
   setSequenceMessage(message) {
     if (this.sequenceMessage) {
-      this.sequenceMessage.textContent =
-        message;
+      this.sequenceMessage.textContent = message;
     }
   }
 
@@ -633,23 +623,19 @@ export class ColorMatchUI {
     }
 
     if (this.originalColor) {
-      this.originalColor.style.background =
-        original;
+      this.originalColor.style.background = original;
     }
 
     if (this.guessedColor) {
-      this.guessedColor.style.background =
-        guessed;
+      this.guessedColor.style.background = guessed;
     }
 
     if (this.scoreResult) {
-      this.scoreResult.textContent =
-        points;
+      this.scoreResult.textContent = points;
     }
 
     if (this.resultMessage) {
-      this.resultMessage.textContent =
-        message;
+      this.resultMessage.textContent = message;
     }
 
     this.result?.classList.add(
@@ -661,22 +647,15 @@ export class ColorMatchUI {
     this.animateResult();
   }
 
-  showEndGame(
-    score,
-    round
-  ) {
-    this.result?.classList.remove(
-      "hidden"
-    );
+  showEndGame(score, round) {
+    this.result?.classList.remove("hidden");
 
     if (this.resultTitle) {
-      this.resultTitle.textContent =
-        "Fim de jogo!";
+      this.resultTitle.textContent = "Fim de jogo!";
     }
 
     if (this.scoreResult) {
-      this.scoreResult.textContent =
-        score;
+      this.scoreResult.textContent = score;
     }
 
     if (this.resultMessage) {
@@ -684,17 +663,13 @@ export class ColorMatchUI {
         `Você chegou até a rodada ${round}.`;
     }
 
-    this.result?.classList.add(
-      "result-failure"
-    );
+    this.result?.classList.add("result-failure");
 
     this.animateResult();
   }
 
   hideResult() {
-    this.result?.classList.add(
-      "hidden"
-    );
+    this.result?.classList.add("hidden");
   }
 
   animateResult() {
@@ -702,15 +677,11 @@ export class ColorMatchUI {
       return;
     }
 
-    this.result.classList.remove(
-      "result-pop"
-    );
+    this.result.classList.remove("result-pop");
 
     void this.result.offsetWidth;
 
-    this.result.classList.add(
-      "result-pop"
-    );
+    this.result.classList.add("result-pop");
   }
 
 
@@ -718,63 +689,48 @@ export class ColorMatchUI {
      CONQUISTAS
   ================================= */
 
-  renderAchievements(
-    achievements,
-    unlocked
-  ) {
+  renderAchievements(achievements, unlocked) {
     if (!this.achievementList) {
       return;
     }
 
     this.achievementList.innerHTML = "";
 
-    achievements.forEach(
-      achievement => {
-        const isUnlocked =
-          unlocked.includes(
-            achievement.id
-          );
+    achievements.forEach(achievement => {
+      const isUnlocked =
+        unlocked.includes(achievement.id);
 
-        const item =
-          document.createElement("article");
+      const item =
+        document.createElement("article");
 
-        item.className =
-          "achievement";
+      item.className = "achievement";
 
-        if (isUnlocked) {
-          item.classList.add(
-            "unlocked"
-          );
-        }
-
-        item.dataset.id =
-          achievement.id;
-
-        item.innerHTML = `
-          <div class="achievement-icon">
-            ${achievement.icon}
-          </div>
-
-          <div class="achievement-info">
-            <h3>${achievement.title}</h3>
-            <p>${achievement.description}</p>
-          </div>
-
-          <div class="achievement-status">
-            ${isUnlocked ? "✓" : "🔒"}
-          </div>
-        `;
-
-        this.achievementList.appendChild(
-          item
-        );
+      if (isUnlocked) {
+        item.classList.add("unlocked");
       }
-    );
+
+      item.dataset.id = achievement.id;
+
+      item.innerHTML = `
+        <div class="achievement-icon">
+          ${achievement.icon}
+        </div>
+
+        <div class="achievement-info">
+          <h3>${achievement.title}</h3>
+          <p>${achievement.description}</p>
+        </div>
+
+        <div class="achievement-status">
+          ${isUnlocked ? "✓" : "🔒"}
+        </div>
+      `;
+
+      this.achievementList.appendChild(item);
+    });
   }
 
-  showAchievementNotification(
-    achievement
-  ) {
+  showAchievementNotification(achievement) {
     if (!this.achievementNotification) {
       return;
     }
@@ -795,8 +751,7 @@ export class ColorMatchUI {
       "achievement-show"
     );
 
-    void this.achievementNotification
-      .offsetWidth;
+    void this.achievementNotification.offsetWidth;
 
     this.achievementNotification.classList.add(
       "achievement-show"
@@ -823,12 +778,10 @@ export class ColorMatchUI {
      UTILITÁRIOS
   ================================= */
 
-  setColor(
-    element,
-    color
-  ) {
-    element.style.background =
-      color;
+  setColor(element, color) {
+    if (element) {
+      element.style.background = color;
+    }
   }
 
   setSoundButton(enabled) {
@@ -973,9 +926,7 @@ export class ColorMatchUI {
       </div>
     `;
 
-    document.body.appendChild(
-      notification
-    );
+    document.body.appendChild(notification);
 
     requestAnimationFrame(() => {
       notification.classList.add(
@@ -1005,23 +956,12 @@ export class ColorMatchUI {
     }
 
     const fields = {
-      accuracyStat:
-        `${data.accuracy}%`,
-
-      averageScoreStat:
-        data.averageScore,
-
-      highScoreStat:
-        data.highScore,
-
-      bestStreakStat:
-        data.bestStreak,
-
-      gamesStat:
-        data.games,
-
-      correctStat:
-        data.correct
+      accuracyStat: `${data.accuracy}%`,
+      averageScoreStat: data.averageScore,
+      highScoreStat: data.highScore,
+      bestStreakStat: data.bestStreak,
+      gamesStat: data.games,
+      correctStat: data.correct
     };
 
     Object.entries(fields).forEach(
@@ -1030,8 +970,7 @@ export class ColorMatchUI {
           document.getElementById(id);
 
         if (element) {
-          element.textContent =
-            value;
+          element.textContent = value;
         }
       }
     );
@@ -1109,12 +1048,15 @@ export class ColorMatchUI {
   }
 
   renderHistory(history) {
-    if (!this.gameHistory) {
+    const container =
+      this.historyList || this.gameHistory;
+
+    if (!container) {
       return;
     }
 
     if (!history.length) {
-      this.gameHistory.innerHTML = `
+      container.innerHTML = `
         <div class="history-empty">
           Nenhuma partida registrada ainda.
         </div>
@@ -1135,7 +1077,7 @@ export class ColorMatchUI {
       hard: "Difícil"
     };
 
-    this.gameHistory.innerHTML =
+    container.innerHTML =
       history
         .map(game => {
           const success =

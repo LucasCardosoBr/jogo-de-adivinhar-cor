@@ -43,11 +43,19 @@ function set(key, value) {
 ========================= */
 
 export function getHistory() {
-  return get(STORAGE_KEYS.history, []);
+  return get(
+    STORAGE_KEYS.history,
+    []
+  );
 }
 
 export function saveHistory(history) {
-  return set(STORAGE_KEYS.history, history);
+  return set(
+    STORAGE_KEYS.history,
+    Array.isArray(history)
+      ? history
+      : []
+  );
 }
 
 export function addHistoryEntry(entry) {
@@ -68,11 +76,16 @@ export function resetHistory() {
 ========================= */
 
 export function isSoundEnabled() {
-  return get(STORAGE_KEYS.sound, true);
+  return Boolean(
+    get(STORAGE_KEYS.sound, true)
+  );
 }
 
 export function setSoundEnabled(enabled) {
-  return set(STORAGE_KEYS.sound, Boolean(enabled));
+  return set(
+    STORAGE_KEYS.sound,
+    Boolean(enabled)
+  );
 }
 
 /* =========================
@@ -80,11 +93,37 @@ export function setSoundEnabled(enabled) {
 ========================= */
 
 export function getTheme() {
-  return get(STORAGE_KEYS.theme, "light");
+  const valid = [
+    "light",
+    "dark",
+    "auto"
+  ];
+
+  const theme = get(
+    STORAGE_KEYS.theme,
+    "light"
+  );
+
+  return valid.includes(theme)
+    ? theme
+    : "light";
 }
 
 export function setTheme(theme) {
-  return set(STORAGE_KEYS.theme, theme);
+  const valid = [
+    "light",
+    "dark",
+    "auto"
+  ];
+
+  const value = valid.includes(theme)
+    ? theme
+    : "light";
+
+  return set(
+    STORAGE_KEYS.theme,
+    value
+  );
 }
 
 /* =========================
@@ -96,6 +135,10 @@ export function getVolume() {
     get(STORAGE_KEYS.volume, 100)
   );
 
+  if (!Number.isFinite(volume)) {
+    return 100;
+  }
+
   return Math.min(
     100,
     Math.max(0, volume)
@@ -103,10 +146,11 @@ export function getVolume() {
 }
 
 export function setVolume(volume) {
-  const value = Math.min(
-    100,
-    Math.max(0, Number(volume) || 0)
-  );
+  const number = Number(volume);
+
+  const value = Number.isFinite(number)
+    ? Math.min(100, Math.max(0, number))
+    : 100;
 
   return set(
     STORAGE_KEYS.volume,
@@ -119,10 +163,20 @@ export function setVolume(volume) {
 ========================= */
 
 export function getAnimations() {
-  return get(
+  const valid = [
+    "full",
+    "reduced",
+    "off"
+  ];
+
+  const value = get(
     STORAGE_KEYS.animations,
     "full"
   );
+
+  return valid.includes(value)
+    ? value
+    : "full";
 }
 
 export function setAnimations(animations) {
@@ -147,9 +201,11 @@ export function setAnimations(animations) {
 ========================= */
 
 export function isHighContrastEnabled() {
-  return get(
-    STORAGE_KEYS.highContrast,
-    false
+  return Boolean(
+    get(
+      STORAGE_KEYS.highContrast,
+      false
+    )
   );
 }
 
@@ -290,9 +346,16 @@ const DEFAULT_STATS = {
 };
 
 export function getStats() {
+  const stats = get(
+    STORAGE_KEYS.stats,
+    {}
+  );
+
   return {
     ...DEFAULT_STATS,
-    ...get(STORAGE_KEYS.stats, {})
+    ...(stats && typeof stats === "object"
+      ? stats
+      : {})
   };
 }
 
@@ -326,19 +389,25 @@ const DEFAULT_PROGRESSION = {
 };
 
 export function getProgression() {
+  const progression = get(
+    STORAGE_KEYS.progression,
+    {}
+  );
+
   return {
     ...DEFAULT_PROGRESSION,
-    ...get(
-      STORAGE_KEYS.progression,
-      {}
-    )
+    ...(progression &&
+    typeof progression === "object"
+      ? progression
+      : {})
   };
 }
 
 export function updateProgression(
   progression
 ) {
-  const current = getProgression();
+  const current =
+    getProgression();
 
   return set(
     STORAGE_KEYS.progression,
@@ -363,10 +432,14 @@ export function resetProgression() {
 ========================= */
 
 export function getAchievements() {
-  return get(
+  const achievements = get(
     STORAGE_KEYS.achievements,
     []
   );
+
+  return Array.isArray(achievements)
+    ? achievements
+    : [];
 }
 
 export function getUnlockedAchievements() {
@@ -378,7 +451,9 @@ export function saveUnlockedAchievements(
 ) {
   return set(
     STORAGE_KEYS.achievements,
-    achievements
+    Array.isArray(achievements)
+      ? achievements
+      : []
   );
 }
 
@@ -401,4 +476,22 @@ export function unlockAchievement(id) {
 
 export function resetAchievements() {
   return saveUnlockedAchievements([]);
+}
+
+/* =========================
+   RESET COMPLETO
+========================= */
+
+export function resetAllData() {
+  Object.values(STORAGE_KEYS).forEach(
+    key => {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        // Armazenamento indisponível.
+      }
+    }
+  );
+
+  return true;
 }

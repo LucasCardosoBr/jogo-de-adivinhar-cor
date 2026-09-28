@@ -4,15 +4,9 @@ import {
 } from "./color/color-utils.js";
 
 import {
-  respectSystemMotionPreference
-} from "./ui/animations.js";
-
-import {
   getHistory,
   addHistoryEntry,
   resetHistory,
-  isSoundEnabled,
-  setSoundEnabled,
   getStats,
   updateStats as saveStats,
   getProgression,
@@ -35,8 +29,7 @@ import {
 import { ColorMatchUI } from "./ui/ui.js";
 
 import {
-  applySavedTheme,
-  toggleTheme
+  applySavedTheme
 } from "./settings/theme.js";
 
 import { playSound } from "./audio.js";
@@ -62,7 +55,7 @@ import {
 import {
   getSettings as getUserSettings,
   updateSetting,
-  applySettings
+  initializeSettings
 } from "./settings/settings.js";
 
 const ui = new ColorMatchUI();
@@ -71,11 +64,6 @@ let stats = getStats();
 
 let progression =
   getProgression();
-
-let previousLevel =
-  getLevelFromXP(
-    progression.xp
-  );
 
 let score = 0;
 let streak = 0;
@@ -118,9 +106,12 @@ function updateAdvancedStatistics() {
 ================================ */
 
 function sound(type) {
+  const settings = getUserSettings();
+
   playSound(
     type,
-    isSoundEnabled()
+    settings.sound,
+    settings.volume
   );
 }
 
@@ -481,9 +472,6 @@ function updatePlayerProgression(points) {
   if (newLevel.level > oldLevel.level) {
     ui.showLevelUp(newLevel);
   }
-
-  previousLevel =
-    newLevel;
 }
 
 
@@ -782,16 +770,25 @@ function finishSequenceMemory() {
 }
 
 function selectSequenceColor(index) {
-  if (locked) {
+  if (
+    locked ||
+    !currentRound
+  ) {
     return;
   }
 
-  const selectedIndex = Number(index);
+  const selectedIndex =
+    Number(index);
 
-  sequenceAnswer.push(selectedIndex);
+  sequenceAnswer.push(
+    selectedIndex
+  );
 
-  const current = sequenceAnswer.length;
-  const total = currentRound.sequence.length;
+  const current =
+    sequenceAnswer.length;
+
+  const total =
+    currentRound.sequence.length;
 
   ui.setSequenceProgress(
     current,
@@ -800,7 +797,9 @@ function selectSequenceColor(index) {
 
   if (
     selectedIndex !==
-    currentRound.sequence[current - 1]
+    currentRound.sequence[
+      current - 1
+    ]
   ) {
     finishSequence(false);
     return;
@@ -816,7 +815,8 @@ function finishSequence(correct) {
 
   ui.disableSequenceOptions();
 
-  const points = correct ? 1000 : 0;
+  const points =
+    correct ? 1000 : 0;
 
   processScore(points);
 
@@ -826,22 +826,29 @@ function finishSequence(correct) {
       : "error"
   );
 
-  const firstColor = hsl(
-    currentRound.palette[
-      currentRound.sequence[0]
-    ]
-  );
+  const firstIndex =
+    currentRound.sequence[0];
+
+  const firstColor =
+    hsl(
+      currentRound.palette[
+        firstIndex
+      ]
+    );
 
   const selectedIndex =
-    sequenceAnswer[
-      sequenceAnswer.length - 1
-    ] ?? 0;
+    sequenceAnswer.length > 0
+      ? sequenceAnswer[
+          sequenceAnswer.length - 1
+        ]
+      : 0;
 
-  const selectedColor = hsl(
-    currentRound.palette[
-      selectedIndex
-    ]
-  );
+  const selectedColor =
+    hsl(
+      currentRound.palette[
+        selectedIndex
+      ]
+    );
 
   ui.showResult(
     firstColor,
@@ -1086,23 +1093,28 @@ function getResultMessage(points) {
 ================================ */
 
 function updateSoundButton() {
+  const settings = getUserSettings();
+
   ui.setSoundButton(
-    isSoundEnabled()
+    settings.sound
   );
 }
 
 function toggleSound() {
-  const enabled = isSoundEnabled();
+  const settings = getUserSettings();
+  const enabled = !settings.sound;
 
-  setSoundEnabled(!enabled);
+  updateSetting(
+    "sound",
+    enabled
+  );
 
   updateSoundButton();
 
-  if (!enabled) {
+  if (enabled) {
     sound("success");
   }
 }
-
 
 /* ================================
    EVENTOS
@@ -1162,60 +1174,87 @@ ui.soundButton.addEventListener(
 ui.themeButton.addEventListener(
   "click",
   () => {
-    const theme = toggleTheme();
+    const settings = getUserSettings();
+
+    const nextTheme =
+      settings.theme === "dark"
+        ? "light"
+        : "dark";
+
+    updateSetting(
+      "theme",
+      nextTheme
+    );
 
     ui.setThemeButton(
-      theme === "dark"
+      nextTheme === "dark"
     );
 
     sound("click");
   }
 );
 
-
 /* ================================
    BOTÕES DE CORES
 ================================ */
 
-function bindColorButtons(
-  container,
-  selector,
-  callback
-) {
-  container
-    .querySelectorAll(selector)
-    .forEach(button => {
-      button.addEventListener(
-        "click",
-        () => {
-          button.classList.add(
-            "selected"
-          );
-
-          callback(
-            button.dataset.index
-          );
-        }
+ui.speedOptions?.addEventListener(
+  "click",
+  event => {
+    const button =
+      event.target.closest(
+        ".color-option"
       );
-    });
-}
 
-bindColorButtons(
-  ui.speedOptions,
-  ".color-option",
-  checkSpeed
+    if (!button) {
+      return;
+    }
+
+    ui.speedOptions
+      .querySelectorAll(".color-option")
+      .forEach(item => {
+        item.classList.remove(
+          "selected"
+        );
+      });
+
+    button.classList.add(
+      "selected"
+    );
+
+    checkSpeed(
+      button.dataset.index
+    );
+  }
 );
 
-bindColorButtons(
-  ui.sequenceOptions,
-  ".sequence-color",
-  selectSequenceColor
-);
+ui.sequenceOptions?.addEventListener(
+  "click",
+  event => {
+    const button =
+      event.target.closest(
+        ".sequence-color"
+      );
 
+    if (!button) {
+      return;
+    }
+
+    button.classList.add(
+      "selected"
+    );
+
+    selectSequenceColor(
+      button.dataset.index
+    );
+  }
+);
 
 /* ================================
    INICIALIZAÇÃO
 ================================ */
+
+initializeSettings();
 
 setupSettings();
 
