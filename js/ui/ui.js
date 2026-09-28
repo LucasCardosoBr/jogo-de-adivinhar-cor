@@ -1,4 +1,4 @@
-import { formatDate } from "./statistics.js";
+import { formatDate } from "../features/statistics.js";
 
 export class ColorMatchUI {
   constructor() {

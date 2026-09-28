@@ -1,8 +1,7 @@
 import {
   randomHSL,
   calculateScore
-} from "./color-utils.js";
-
+} from "../color/color-utils.js";
 
 const settings = {
   easy: {
@@ -24,7 +23,6 @@ const settings = {
   }
 };
 
-
 /* ================================
    CONFIGURAÇÕES
 ================================ */
@@ -32,7 +30,6 @@ const settings = {
 export function getSettings(difficulty) {
   return settings[difficulty] || settings.easy;
 }
-
 
 /* ================================
    MODO COMBINAÇÃO
@@ -43,7 +40,6 @@ export function createMatchRound() {
     target: randomHSL()
   };
 }
-
 
 /* ================================
    MODO RELÂMPAGO
@@ -66,7 +62,6 @@ export function createSpeedRound() {
     correctIndex: shuffled.indexOf(target)
   };
 }
-
 
 /* ================================
    MODO SEQUÊNCIA
@@ -95,7 +90,6 @@ export function createSequenceRound(difficulty) {
     sequence
   };
 }
-
 
 /* ================================
    PALETA
@@ -128,7 +122,6 @@ function createPalette(
 
   return palette;
 }
-
 
 /* ================================
    EMBARALHAR

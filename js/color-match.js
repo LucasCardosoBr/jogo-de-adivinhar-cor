@@ -1,7 +1,11 @@
 import {
   hsl,
   calculateScore
-} from "./color-utils.js";
+} from "./color/color-utils.js";
+
+import {
+  respectSystemMotionPreference
+} from "./ui/animations.js";
 
 import {
   getHistory,
@@ -13,48 +17,53 @@ import {
   updateStats as saveStats,
   getProgression,
   updateProgression as saveProgression
-} from "../storage.js";
+} from "./storage.js";
 
 import {
   calculateAccuracy,
   calculateAverageScore,
   getModeStats
-} from "./statistics.js";
+} from "./features/statistics.js";
 
 import {
   createMatchRound,
   createSpeedRound,
   createSequenceRound,
   getSettings
-} from "./modes.js";
+} from "./game/game-modes.js";
 
-import { ColorMatchUI } from "./color-match-ui.js";
+import { ColorMatchUI } from "./ui/ui.js";
 
 import {
   applySavedTheme,
   toggleTheme
-} from "./theme.js";
+} from "./settings/theme.js";
 
-import { playSound } from "../audio.js";
+import { playSound } from "./audio.js";
 
 import {
   getProgress,
   getLevelFromXP,
   calculateXP
-} from "./progression.js";
+} from "./features/progression.js";
 
 import {
   clearGameTimer,
   startTimer
-} from "./game-timer.js";
+} from "./game/game-timer.js";
 
 import {
   getAchievementList,
   getUnlockedAchievements,
   checkAchievements,
   getAchievement
-} from "./achievements.js";
+} from "./features/achievements.js";
 
+import {
+  getSettings as getUserSettings,
+  updateSetting,
+  applySettings
+} from "./settings/settings.js";
 
 const ui = new ColorMatchUI();
 
@@ -122,6 +131,264 @@ function sound(type) {
 
 function getDifficultySettings() {
   return getSettings(ui.getDifficulty());
+}
+
+function setupSettings() {
+  const settingsButton =
+    document.getElementById(
+      "settingsButton"
+    );
+
+  const modal =
+    document.getElementById(
+      "settingsModal"
+    );
+
+  const closeButton =
+    document.getElementById(
+      "closeSettingsButton"
+    );
+
+  const closeBottomButton =
+    document.getElementById(
+      "closeSettingsButtonBottom"
+    );
+
+  const theme =
+    document.getElementById(
+      "settingsTheme"
+    );
+
+  const sound =
+    document.getElementById(
+      "settingsSound"
+    );
+
+  const volume =
+    document.getElementById(
+      "settingsVolume"
+    );
+
+  const volumeValue =
+    document.getElementById(
+      "settingsVolumeValue"
+    );
+
+  const animations =
+    document.getElementById(
+      "settingsAnimations"
+    );
+
+  const contrast =
+    document.getElementById(
+      "settingsContrast"
+    );
+
+  const fontSize =
+    document.getElementById(
+      "settingsFontSize"
+    );
+
+  const defaultMode =
+    document.getElementById(
+      "settingsDefaultMode"
+    );
+
+  const defaultDifficulty =
+    document.getElementById(
+      "settingsDefaultDifficulty"
+    );
+
+  if (
+    !modal ||
+    !settingsButton
+  ) {
+    return;
+  }
+
+  function loadSettings() {
+    const settings =
+      getUserSettings();
+
+    theme.value =
+      settings.theme;
+
+    sound.checked =
+      settings.sound;
+
+    volume.value =
+      settings.volume;
+
+    volumeValue.textContent =
+      `${settings.volume}%`;
+
+    animations.value =
+      settings.animations;
+
+    contrast.checked =
+      settings.highContrast;
+
+    fontSize.value =
+      settings.fontSize;
+
+    defaultMode.value =
+      settings.defaultMode;
+
+    defaultDifficulty.value =
+      settings.defaultDifficulty;
+  }
+
+  function openSettings() {
+    loadSettings();
+
+    modal.classList.remove(
+      "hidden"
+    );
+
+    document.body.classList.add(
+      "modal-open"
+    );
+
+    theme.focus();
+  }
+
+  function closeSettings() {
+    modal.classList.add(
+      "hidden"
+    );
+
+    document.body.classList.remove(
+      "modal-open"
+    );
+
+    settingsButton?.focus();
+  }
+
+  settingsButton?.addEventListener(
+    "click",
+    openSettings
+  );
+
+  closeButton?.addEventListener(
+    "click",
+    closeSettings
+  );
+
+  closeBottomButton?.addEventListener(
+    "click",
+    closeSettings
+  );
+
+  modal.addEventListener(
+    "click",
+    event => {
+      if (event.target === modal) {
+        closeSettings();
+      }
+    }
+  );
+
+  document.addEventListener(
+    "keydown",
+    event => {
+      if (
+        event.key === "Escape" &&
+        !modal.classList.contains("hidden")
+      ) {
+        closeSettings();
+      }
+    }
+  );
+
+  theme.addEventListener(
+    "change",
+    () => {
+      updateSetting(
+        "theme",
+        theme.value
+      );
+    }
+  );
+
+  sound.addEventListener(
+    "change",
+    () => {
+      updateSetting(
+        "sound",
+        sound.checked
+      );
+    }
+  );
+
+  volume.addEventListener(
+    "input",
+    () => {
+      const value =
+        Number(volume.value);
+
+      volumeValue.textContent =
+        `${value}%`;
+
+      updateSetting(
+        "volume",
+        value
+      );
+    }
+  );
+
+  animations.addEventListener(
+    "change",
+    () => {
+      updateSetting(
+        "animations",
+        animations.value
+      );
+    }
+  );
+
+  contrast.addEventListener(
+    "change",
+    () => {
+      updateSetting(
+        "highContrast",
+        contrast.checked
+      );
+    }
+  );
+
+  fontSize.addEventListener(
+    "change",
+    () => {
+      updateSetting(
+        "fontSize",
+        fontSize.value
+      );
+    }
+  );
+
+  defaultMode.addEventListener(
+    "change",
+    () => {
+      updateSetting(
+        "defaultMode",
+        defaultMode.value
+      );
+    }
+  );
+
+  defaultDifficulty.addEventListener(
+    "change",
+    () => {
+      updateSetting(
+        "defaultDifficulty",
+        defaultDifficulty.value
+      );
+    }
+  );
+
+  applySettings();
+
+  return getUserSettings();
 }
 
 
@@ -950,6 +1217,16 @@ bindColorButtons(
    INICIALIZAÇÃO
 ================================ */
 
+setupSettings();
+
+const userSettings = getUserSettings();
+
+ui.gameMode.value =
+  userSettings.defaultMode;
+
+ui.difficulty.value =
+  userSettings.defaultDifficulty;
+
 applySavedTheme();
 
 updateSoundButton();
@@ -969,17 +1246,6 @@ ui.renderAchievements(
 ui.updateProgression(
   getProgress(progression.xp)
 );
-
-import {
-  getProgress,
-  getLevelFromXP,
-  calculateXP
-} from "./progression.js";
-
-import {
-  getProgression,
-  updateProgression as saveProgression
-} from "../storage.js";
 
 function refreshAdvancedStatistics() {
   updateAdvancedStatistics();
